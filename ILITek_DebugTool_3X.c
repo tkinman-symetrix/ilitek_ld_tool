@@ -339,6 +339,7 @@ void vfRunUSBDebug_3X()
     struct hidraw_devinfo device_info;
     char device_name[256];
     int bufferlen = 63;
+    ssize_t error;
 
     active_interface = ACTIVE_INTERFACE_ILITEK_CTRL_I2C;
     for(index_hidraw = 0; index_hidraw < 10; index_hidraw++)
@@ -400,7 +401,7 @@ void vfRunUSBDebug_3X()
 #endif
                     while(isStop != 1)
                     {
-                        read(fd, buf, bufferlen);
+                        error = read(fd, buf, bufferlen);
 
                         //for(bufferindex = 0; bufferindex < 63; bufferindex++)
                         //{

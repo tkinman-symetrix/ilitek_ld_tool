@@ -168,6 +168,7 @@ char *GetIniKeyString(const char *title, const char *key, char *filename)
     bool MultiByteEnable = false;
     bool FindDataByte = false;
     int buteCount = 0;
+    ssize_t error;
 
     szLine = (unsigned char *)calloc(8192, sizeof(unsigned char));
     if ((fp = fopen(filename, ("rb"))) == NULL)
@@ -175,7 +176,7 @@ char *GetIniKeyString(const char *title, const char *key, char *filename)
         PRINTF("have no such file :%s\n", filename);
         return NULL;
     }
-    fread(&(isUni), 1, 2, fp);
+    error = fread(&(isUni), 1, 2, fp);
     if(isUni == (unsigned short)0xBBEF){
         //PRINTF("%s,%d,UTF-8 have Bom\n", __func__, __LINE__);
         //? ç‚ºbom?¯ä??‹byteï¼Œæ?ä»¥è?å¤šè?ä¸€?‹byte
@@ -330,13 +331,14 @@ bool check_ini_section(const char *title, char *filename)
     bool MultiByteEnable = false;
     bool FindDataByte = false;
     int buteCount = 0;
+    ssize_t error;
 
     if ((fp = fopen(filename, ("rb"))) == NULL)
     {
         PRINTF("have no such file :%s\n",filename);
         return "";
     }
-    fread(&(isUni), 1, 2, fp);
+    error = fread(&(isUni), 1, 2, fp);
     if(isUni == (unsigned short)0xBBEF){
         //PRINTF("%s,%d,UTF-8 have Bom\n", __func__, __LINE__);
         //? ç‚ºbom?¯ä??‹byteï¼Œæ?ä»¥è?å¤šè?ä¸€?‹byte
