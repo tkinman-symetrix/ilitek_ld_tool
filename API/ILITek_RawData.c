@@ -139,7 +139,7 @@ int viRunBGData_6X(int inFrames)
     return ret;
 }
 
-int viRunCDCType_3X(char *type, int inFrames) {
+int viRunCDCType_3X(const char *type, int inFrames) {
     int ret = _SUCCESS, len = 0;
     int inCounts = 0;
     int CHX = 0, CHY = 0;
@@ -266,7 +266,7 @@ int viRunCDCType_3X(char *type, int inFrames) {
     return ret;
 }
 
-int viRunCDCType_6X(char *type, int inFrames) {
+int viRunCDCType_6X(const char *type, int inFrames) {
     int ret = _SUCCESS;
     int inCounts = 0;
     int CHX = 0, CHY = 0;
@@ -783,7 +783,7 @@ int viRunCDCType(char *argv[]) {
     return ret;
 }
 
-int viCreateCDCReportFile(char *type)
+int viCreateCDCReportFile(const char *type)
 {
     int ret = _SUCCESS;
     time_t rawtime;

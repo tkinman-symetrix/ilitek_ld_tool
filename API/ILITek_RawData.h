@@ -77,8 +77,8 @@
 
 int viRunBGData(int inFrames);
 int viRunCDCData(int inFrames);
-int viRunCDCType_3X(char *type, int inFrames);
-int viRunCDCType_6X(char *type, int inFrames);
+int viRunCDCType_3X(const char *type, int inFrames);
+int viRunCDCType_6X(const char *type, int inFrames);
 int viInitRawData_3Para_3X(unsigned char ucCMDInit, unsigned char ucCMDMode, unsigned char ucCMDCounts);
 int viGetRawData_3X(unsigned char ucCMD, unsigned char unStyle, int inTotalCounts, unsigned char ucDataFormat, unsigned char ucLineLenth);
 int viRunBGMinusCDCData(int inFrames);
@@ -90,7 +90,7 @@ extern int viRunCDCType(char *argv[]);
 extern int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode);
 extern int viGetCDCData_3X(unsigned char type, unsigned int len, unsigned char offset, unsigned char driven, unsigned char row);
 extern int viGetCDCData_6X(unsigned char type, unsigned int len);
-int viCreateCDCReportFile(char *type);
+int viCreateCDCReportFile(const char *type);
 int viWriteCDCReport(int count, int report[][300], int max, int min, int report_key[][50]);
 #endif
 

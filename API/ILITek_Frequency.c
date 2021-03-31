@@ -68,7 +68,7 @@ void merge_sort(unsigned short *inbuf, unsigned short *outbuf, int count) {
     }
 }
 
-void print_freq_log(char *name, FREQUENCY_SET_DATA freq, int scan_data, int start) {
+void print_freq_log(const char *name, FREQUENCY_SET_DATA freq, int scan_data, int start) {
     int i = 0, j = 0, count = 0, bit = 0;
     uint16_t min[256] = {0}, tmp[256] = {0};
     int addr_start = 0;

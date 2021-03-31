@@ -134,7 +134,7 @@ static char tmpstr[1024];
 short int NewVerFlag = 0;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-int GetIniKeyInt(char *title, char *key, char *filename)
+int GetIniKeyInt(const char *title, const char *key, char *filename)
 {
     int temp = 0;
     char *tmpbuffer = GetIniKeyString(title, key, filename);
@@ -154,7 +154,8 @@ int GetIniKeyInt(char *title, char *key, char *filename)
         return temp;
     }
 }
-char *GetIniKeyString(char *title, char *key, char *filename)
+
+char *GetIniKeyString(const char *title, const char *key, char *filename)
 {
     FILE *fp;
     unsigned char *szLine;
@@ -171,8 +172,8 @@ char *GetIniKeyString(char *title, char *key, char *filename)
     szLine = (unsigned char *)calloc(8192, sizeof(unsigned char));
     if ((fp = fopen(filename, ("rb"))) == NULL)
     {
-        PRINTF("have no such file :%s\n",filename);
-        return "";
+        PRINTF("have no such file :%s\n", filename);
+        return NULL;
     }
     fread(&(isUni), 1, 2, fp);
     if(isUni == (unsigned short)0xBBEF){
@@ -266,7 +267,7 @@ char *GetIniKeyString(char *title, char *key, char *filename)
     }
     free(szLine);
     fclose(fp);
-    return "";
+    return NULL;
 }
 
 void check_use_default_set(void) {
@@ -317,7 +318,7 @@ void check_use_default_set(void) {
         ST.Short.posidleH = _SensorTest_Short_posidleH_V6_;
 }
 
-bool check_ini_section(char *title, char *filename)
+bool check_ini_section(const char *title, char *filename)
 {
     FILE *fp;
     char szLine[1024];
@@ -469,10 +470,10 @@ char *GetIniSectionString(char *title, char *tmp_str, char *filename)
     }
     free(szLine);
     fclose(fp);
-    return "";
+    return NULL;
 }
 
-void vfReadBenchMarkValue(char *title,int BenchMarkBuf[][_MaxChanelNum_], char *filename)
+void vfReadBenchMarkValue(const char *title, int BenchMarkBuf[][_MaxChanelNum_], char *filename)
 {
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
@@ -525,7 +526,7 @@ void vfReadBenchMarkValue(char *title,int BenchMarkBuf[][_MaxChanelNum_], char *
     strValue = NULL;
 }
 
-void vfReadBenchMarkValue_V6(char *title, char *filename, SensorTest_BenBenchmark_Node **data, int x, int y)
+void vfReadBenchMarkValue_V6(const char *title, char *filename, SensorTest_BenBenchmark_Node **data, int x, int y)
 {
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
@@ -943,7 +944,7 @@ void vfSaveMircoOpenTestLog_V6(FILE *fp)
 
 }
 
-void SaveUniformitytoCSV_V6(char *name, FILE *fp, SensorTest_BenBenchmark_Node **data, int x, int y, int type) {
+void SaveUniformitytoCSV_V6(const char *name, FILE *fp, SensorTest_BenBenchmark_Node **data, int x, int y, int type) {
     int loopCh_X = 0, loopCh_Y = 0, status = 0;
 
     fprintf(fp, "\n%s,", name);
@@ -3780,7 +3781,7 @@ int viRunMircoOpenTest_6X()
 	return ret;
 }
 
-int NodeTest_V6(char *name, SensorTest_Node **delac, SensorTest_BenBenchmark_Node **data,
+int NodeTest_V6(const char *name, SensorTest_Node **delac, SensorTest_BenBenchmark_Node **data,
                 int x, int y, int max_fail_count, int min_fail_count) {
     int ret = _SUCCESS;
     int CHX = 0, CHY = 0;
