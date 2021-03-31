@@ -8,7 +8,6 @@
 int PanelInfor_V6()
 {
     int ret=0;
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = (unsigned char)ILITEK_TP_CMD_GET_RESOLUTION;
@@ -53,7 +52,6 @@ int GetKeyInfor_V6(int key_num) {
 int SetDataLength_V6(uint32_t data_len)
 {
     int ret=0;
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0]=(unsigned char)ILITEK_TP_CMD_SET_DATA_LENGTH;
@@ -237,7 +235,6 @@ int SetProgramKey_V6()
 int ModeCtrl_V6(uint8_t mode, uint8_t engineer)
 {
     int ret = _FAIL;
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0]=(uint8_t)ILITEK_TP_CMD_SET_MODE_CONTORL;
@@ -282,7 +279,6 @@ int ModeCtrl_V6(uint8_t mode, uint8_t engineer)
 
 int GetSlaveICMode_V6(int number)
 {
-    int ret=0;
     int i=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
@@ -402,9 +398,7 @@ int SetFsInfo(uint16_t mc_sine_start, uint16_t mc_sine_end, uint8_t mc_sine_step
 uint32_t SetShortInfo(uint8_t dump1,uint8_t dump2, uint8_t verf, uint8_t posidleL, uint8_t posidleH)
 {
     int ret=0;
-    int i=0;
-    uint32_t uiCheckSum=0;
-    uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
+    uint8_t Wbuff[64] = {0};
 
     Wbuff[0] = ILITEK_TP_CMD_SET_SHORT_INFO;
     Wbuff[1] = dump1;
@@ -419,9 +413,7 @@ uint32_t SetShortInfo(uint8_t dump1,uint8_t dump2, uint8_t verf, uint8_t posidle
 uint32_t SetOpenInfo(uint8_t frep_L,uint8_t frep_H, uint8_t gain)
 {
     int ret=0;
-    int i=0;
-    uint32_t uiCheckSum=0;
-    uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
+    uint8_t Wbuff[64] = {0};
 
     Wbuff[0] = ILITEK_TP_CMD_SET_OPEN_INFO;
     Wbuff[1] = frep_L;
@@ -434,7 +426,7 @@ uint32_t SetOpenInfo(uint8_t frep_L,uint8_t frep_H, uint8_t gain)
 uint32_t SetFlashAddress_V6(uint32_t addr)
 {
     int ret = _SUCCESS;
-    uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
+    uint8_t Wbuff[64] = {0};
 
     Wbuff[0] = ILITEK_TP_CMD_SET_FLASH_ADDRESS;
     Wbuff[1] = addr & 0xFF;
@@ -465,7 +457,7 @@ uint32_t ReadFlash_V6(uint8_t type, uint8_t *buff, uint32_t len)
 }
 
 int32_t GetFlashData_V6(uint32_t start, uint32_t len, char *path) {
-    uint8_t Wbuff[64] = {0}, *Rbuff = NULL, *buff = NULL;
+    uint8_t *Rbuff = NULL, *buff = NULL;
     int t_len = 4096, addr = 0, remain_len = 0;
 
     if (ChangeToBootloader() == _FAIL)

@@ -31,7 +31,6 @@
 int viInitFre_3X(unsigned char inStartValue, unsigned char inEndValue, unsigned char inStep)
 {
     int ret = _SUCCESS;
-    int count = 0;
     uint8_t Wbuff[64] = {0};
 
     Wbuff[0] = 0xF3;
@@ -113,9 +112,8 @@ void print_freq_log(char *name, FREQUENCY_SET_DATA freq, int scan_data, int star
 
 int viRunFre_6X(char *argv[])
 {
-    int ret = _SUCCESS, i = 0, j = 0;
+    int ret = _SUCCESS, i = 0;
     int d_len = 0, delay_count = 10;
-    uint16_t min[256] = {0}, tmp[256] = {0};
     FREQUENCY_SET_DATA mc_sine;
     FREQUENCY_SET_DATA mc_swcap;
     FREQUENCY_SET_DATA sc_swcap;
@@ -223,7 +221,6 @@ int viRunFre_3X(int inStartValue, int inEndValue, int inStep)
     unsigned char ucMin1 = 0xFF, ucMin2 = 0xFF, ucMin3 = 0xFF;
     int inCurrentFre = inStartValue;
     int inTargeFre1, inTargeFre2, inTargeFre3;
-    int find_freq[3];
 
     inTotalCounts = ((((inEndValue - inStartValue) * 10) / inStep) + 1);
     if (inStartValue >= inEndValue)

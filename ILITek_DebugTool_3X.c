@@ -64,8 +64,6 @@ int debug_tool_get_data_form_kernel(void)
     struct nlmsghdr *nlh = NULL;
     struct iovec iov;
     int ret;
-    int i=0;
-    int pid;
     unsigned char buf[32] = {0};
     unsigned char sendbuf[64] = {0};
     int line_num = 0;
@@ -73,6 +71,7 @@ int debug_tool_get_data_form_kernel(void)
     unsigned char filename_start[128] = {0};
     time_t rawtime;
     struct tm *timeinfo;
+
     //MAX_PAYLOAD=sizeof(file_fw_data);
     //MAX_PAYLOAD=169;
     memset(&msg,0,sizeof(msg));
@@ -282,27 +281,8 @@ int debug_tool_get_data_form_kernel(void)
 void vfStartI2CDebug_3X()
 {
     int ret;
-    char *endptr;
     unsigned char buf[32] = {0};
-    int i = 0;
-    unsigned int write_len = 0;
-    unsigned int read_len = 0;
-    struct stat check_hexfile;
-    int isStop = 0;
-    int index_hidraw;
-    char raw_devicenode[64];
-    int fd;
-    int size = 0;
-    int line_num = 0;
-    unsigned char filename_end[16] = {0};
-    unsigned char filename_start[128] = {0};
-    time_t rawtime;
-    struct tm *timeinfo;
-    struct hidraw_devinfo device_info;
-    char device_name[256];
-    int bufferlen = 63;
-    int bufferindex;
-    int validlen;
+
     active_interface = ACTIVE_INTERFACE_ILITEK_CTRL_I2C;
     debug_flag = 1;
     ret = open_device();
@@ -324,27 +304,8 @@ void vfStartI2CDebug_3X()
 void vfStopI2CDebug_3X()
 {
     int ret;
-    char *endptr;
     unsigned char buf[32] = {0};
-    int i = 0;
-    unsigned int write_len = 0;
-    unsigned int read_len = 0;
-    struct stat check_hexfile;
-    int isStop = 0;
-    int index_hidraw;
-    char raw_devicenode[64];
-    int fd;
-    int size = 0;
-    int line_num = 0;
-    unsigned char filename_end[16] = {0};
-    unsigned char filename_start[128] = {0};
-    time_t rawtime;
-    struct tm *timeinfo;
-    struct hidraw_devinfo device_info;
-    char device_name[256];
-    int bufferlen = 63;
-    int bufferindex;
-    int validlen;
+
     active_interface = ACTIVE_INTERFACE_ILITEK_CTRL_I2C;
     debug_flag = 0;
     ret = open_device();
@@ -365,12 +326,7 @@ void vfStopI2CDebug_3X()
 void vfRunUSBDebug_3X()
 {
     int ret;
-    char *endptr;
     unsigned char buf[32] = {0};
-    int i = 0;
-    unsigned int write_len = 0;
-    unsigned int read_len = 0;
-    struct stat check_hexfile;
     int isStop = 0;
     int index_hidraw;
     char raw_devicenode[64];
@@ -384,8 +340,8 @@ void vfRunUSBDebug_3X()
     struct hidraw_devinfo device_info;
     char device_name[256];
     int bufferlen = 63;
-    int bufferindex;
     int validlen;
+
     active_interface = ACTIVE_INTERFACE_ILITEK_CTRL_I2C;
     for(index_hidraw = 0; index_hidraw < 10; index_hidraw++)
     {

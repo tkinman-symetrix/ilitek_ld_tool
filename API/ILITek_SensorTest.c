@@ -409,7 +409,6 @@ char *GetIniSectionString(char *title, char *tmp_str, char *filename)
     int rtnval;
     int i = 0;
     int flag = 0;
-    char *tmp;
     char *splitResult;
     
     if ((fp = fopen(filename, ("r"))) == NULL)
@@ -530,9 +529,7 @@ void vfReadBenchMarkValue_V6(char *title, char *filename, SensorTest_BenBenchmar
 {
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
-    unsigned char ucIndex;
     int iCount;
-    char key[10];
     char *strValue;
     int filesize = get_file_size(filename);
     char *strData;
@@ -586,13 +583,8 @@ void vfReadBenchMarkValue_V6(char *title, char *filename, SensorTest_BenBenchmar
 
 void vfSaveFWVerTestLog_V3(FILE *fp)
 {
-    unsigned char ucloopCh_X;
-    unsigned char ucloopCh_Y;
-    char txt_buffer[1024];
-    char cur_fileName[256];
-    //FILE *fp = NULL;
-    char timebuf[60];
     int i = 0;
+
     if ((ucSensorTestResult & FWVERTION_TEST) == FWVERTION_TEST)
         fprintf(fp, "[Firmware_Version]       ,NG ,Version,V");
     else
@@ -610,17 +602,12 @@ void vfSaveSelfTestLog(FILE *fp)
 {
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
-    char txt_buffer[1024];
-    char cur_fileName[256];
-    //FILE *fp = NULL;
-    char timebuf[60];
-    int i = 0;
+
     if ((ucSensorTestResult & SELF_TEST) == SELF_TEST)
         fprintf(fp, "[Self_Cap_Test]           ,NG ,\n");
     else
-    {
         fprintf(fp, "[Self_Cap_Test]           ,OK ,\n");
-    }
+
     ST.Self_Maximum = GetIniKeyInt("TestItem", "SelfCapTest_Maximum", g_szConfigPath);
     ST.Self_Minimum = GetIniKeyInt("TestItem", "SelfCapTest_Minimum", g_szConfigPath);
     ST.Self_P2P = GetIniKeyInt("TestItem", "SelfCapTest_P2P", g_szConfigPath);
@@ -668,10 +655,6 @@ void vfSaveShortTestLog_V3(FILE *fp)
 {
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
-    char txt_buffer[1024];
-    char cur_fileName[256];
-    char timebuf[60];
-    int i = 0;
     int key_ych = 0;
     
     if ((ucSensorTestResult & MICROSHORT_TEST) == MICROSHORT_TEST)
@@ -750,13 +733,8 @@ void vfSaveShortTestLog_V3(FILE *fp)
 
 void vfSaveFWVerTestLog_V6(FILE *fp)
 {
-    unsigned char ucloopCh_X;
-    unsigned char ucloopCh_Y;
-    char txt_buffer[1024];
-    char cur_fileName[256];
-    //FILE *fp = NULL;
-    char timebuf[60];
     int i = 0;
+
     if ((ucSensorTestResult & FWVERTION_TEST) == FWVERTION_TEST)
         fprintf(fp, "[FW_Verify]                           ,NG ,\n");
     else
@@ -798,9 +776,7 @@ void vfSaveOpenTestLog_V6(FILE *fp)
 	unsigned int ucloopCh_X;
 	unsigned int ucloopCh_Y;
     unsigned int ucloop;
-	char txt_buffer[1024];
-	char cur_fileName[256];
-	char timebuf[60];
+
     if ((ucSensorTestResult & OPEN_TEST) == OPEN_TEST)
     {
         fprintf(fp, "[Open Test]                            ,NG ,\n");
@@ -891,9 +867,7 @@ void vfSaveMircoOpenTestLog_V6(FILE *fp)
 {
 	unsigned int ucloopCh_X;
 	unsigned int ucloopCh_Y;
-	char txt_buffer[1024];
-	char cur_fileName[256];
-	char timebuf[60];
+
     if ((ucSensorTestResult & MIRCO_OPEN_TEST) == MIRCO_OPEN_TEST)
     {
         fprintf(fp, "[MicroOpen_Test]                 ,NG ,\n");
@@ -1231,10 +1205,6 @@ void vfSaveShortTestLog_V6(FILE *fp)
     unsigned int ucloopCh_X;
     unsigned int ucloopCh_Y;
     unsigned int ucloop;
-    char txt_buffer[1024];
-    char cur_fileName[256];
-    char timebuf[60];
-    int i = 0;
 
     if ((ucSensorTestResult & MICROSHORT_TEST) == MICROSHORT_TEST)
         fprintf(fp, "\n[Short Test]                           ,NG ,\n\n");
@@ -1336,9 +1306,6 @@ void vfSaveUniformityTestLog(FILE *fp)
 {
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
-    char txt_buffer[1024];
-	char cur_fileName[256];
-    char timebuf[60];
 
     if ((ucSensorTestResult & UNIFORMITY_TEST) == UNIFORMITY_TEST)
         fprintf(fp, "[Uniformity_Test]        ,NG,\n");
@@ -1438,9 +1405,7 @@ void vfSaveOpenTestLog_NewFlow(FILE *fp)
 {
 	unsigned char ucloopCh_X;
 	unsigned char ucloopCh_Y;
-	char txt_buffer[1024];
-	char cur_fileName[256];
-	char timebuf[60];
+
     if ((ucSensorTestResult & OPEN_TEST) == OPEN_TEST)
     {
         fprintf(fp, "[Open_Test]              ,NG ,\n");
@@ -1601,9 +1566,6 @@ void vfSaveOpenTestLog_V3(FILE *fp)
 	unsigned char ucloopCh_X;
 	unsigned char ucloopCh_Y;
     unsigned char ucloop;
-	char txt_buffer[1024];
-	char cur_fileName[256];
-	char timebuf[60];
 
     if ((ucSensorTestResult & OPEN_TEST) == OPEN_TEST)
     {
@@ -1660,9 +1622,7 @@ void vfSaveAllNodeTestLog(FILE *fp)
 {
 	unsigned char ucloopCh_X;
 	unsigned char ucloopCh_Y;
-	char txt_buffer[1024];
-	char cur_fileName[256];
-	char timebuf[60];
+
     if ((ucSensorTestResult & ALL_NODE_TEST) == ALL_NODE_TEST)
     {
         fprintf(fp, "[All_Node_Test]          ,NG ,\n");
@@ -1734,9 +1694,7 @@ void vfSaveDACTestLog(FILE *fp)
 {
 	unsigned char ucloopCh_X;
 	unsigned char ucloopCh_Y;
-	char txt_buffer[1024];
-	char cur_fileName[256];
-	char timebuf[60];
+
     if ((ucSensorTestResult & ALL_NODE_TEST) == ALL_NODE_TEST)
     {
         fprintf(fp, "[DAC_Test]               ,NG ,\n");
@@ -1885,7 +1843,6 @@ void vfConverDataFormat()  //X Channel �� Y Channel��������S
 int viRunUniformityTest_3X()
 {
     int ret = _SUCCESS;
-    unsigned char ucPass = 1;
     int inBD_TopAvg,inBD_BottomAvg,inBD_RightAvg,inBD_Left_Avg,inVAAvg;
     int inIndexCounts;
     int inSum;
@@ -2209,7 +2166,6 @@ int viRunUniformityTest_3X()
 int viRunAllNodeTest_3X()
 {
     int ret = 1;
-    int inCounts = 0;
     int CHX = 0, CHY = 0;
     unsigned char ucPass = 1;
     int PanelFailCount = 0;
@@ -2349,7 +2305,7 @@ int viRunAllNodeTest_3X()
 int viRunOpenTest_3X_NewFlow()
 {
 	int ret = _SUCCESS;
-	int inDeltaValue1,inDeltaValue2,inTargetValue;
+	int inDeltaValue1;
 	int inDiffAvg,inX_DiffAvg,inY_DiffAvg;
 	//int inDiffThreshold,inX_DiffThreshold,inY_DiffThreshold,
 	int inIndexCounts;
@@ -2608,7 +2564,6 @@ int viRunOpenTest_3X_NewFlow()
 }
 
 int OpenTestKeyThreshold() {
-    int CHX = 0, CHY = 0;
     int ret = _SUCCESS;
     int count = 0;
 
@@ -2639,7 +2594,6 @@ int OpenTestKeyThreshold() {
 int OpenTestThreshold() {
     int CHX = 0, CHY = 0;
     int ret = _SUCCESS;
-    int count = 0;
 
     PRINTF("Open Datas: \n       ");
     for (CHX = 0; CHX < ptl.x_ch; CHX++) {
@@ -2672,7 +2626,6 @@ int OpenTestThreshold() {
 int OpenTestRxDiff() {
     int CHX = 0, CHY = 0;
     int ret = _SUCCESS;
-    int count = 0;
     int RXFailCount = 0;
     int threshold = 0;
     int diff = 0;
@@ -2962,7 +2915,6 @@ int viRunOpenTest_3X()
 int viRunShortTest_6X()
 {
 	int ret = _SUCCESS;
-	int inCounts = 0;
 	unsigned int ucLineLenth = 0;
 	unsigned int ucIndex = 0;
 
@@ -3273,9 +3225,9 @@ int viRunSelfTest_3X()
 int viRunDACTest_3X()
 {
     int ret = _FAIL;
-    int inCounts = 0;
     int CHX = 0, CHY = 0;
     unsigned char ucPass = 1;
+
     if (ST.DAC_SC_P_Maximum == -1)
         ST.DAC_SC_P_Maximum = _SensorTestDACSPMax_;
     if (ST.DAC_SC_P_Minimum == -1)
@@ -3535,7 +3487,7 @@ int viRunShortTest_3X()
 	unsigned char ucLineLenth = 0;
 	unsigned char ucIndex = 0;
     int key_ych = 0;
-    int TxAverageStatus = _SUCCESS;
+
 	if (ST.Short.Threshold == -1)
 	{
 		ST.Short.Threshold = _SensorTestShortThreshold_;
@@ -3705,8 +3657,8 @@ int viRunShortTest_3X()
 int viRunOpenTest_6X()
 {
 	int ret = _SUCCESS;
-	int CHY = 0, CHX = 0, trans_num = 0, index = 0;
-    int TxAverageStatus = _SUCCESS, RxDiffStatus = _SUCCESS, ThresholdStatus = _SUCCESS, KeyThresholdStatus = _SUCCESS;
+	int trans_num = 0;
+    int TxAverageStatus = _SUCCESS, RxDiffStatus = _SUCCESS, ThresholdStatus = _SUCCESS;
 
 	PRINTF("\nOpen Test Criteria:\n");
     trans_num = ptl.x_ch * ptl.y_ch;
@@ -3754,13 +3706,7 @@ int viRunMircoOpenTest_3X()
 int viRunMircoOpenTest_6X()
 {
 	int ret = _SUCCESS;
-	int inCounts = 0, CHY = 0, CHX = 0, trans_num = 0;
-	unsigned char ucPass = 1;
-	unsigned char ucInitCMD = 0;
-	unsigned char ucReadCMD = 0;
-	unsigned char ucIndex = 0;
-    int RXFailCount = 0;
-    int TXFailCount = 0;
+	int CHY = 0, CHX = 0, trans_num = 0;
     int TxAverageStatus = _SUCCESS, RxDiffStatus = _SUCCESS;
 
 	PRINTF("\nMirco Open Test Criteria:\n");
@@ -3904,11 +3850,7 @@ int NodeTest_V6(char *name, SensorTest_Node **delac, SensorTest_BenBenchmark_Nod
 int viRunUniformityTest_6X()
 {
 	int ret = _SUCCESS;
-	int inCounts = 0, CHY = 0, CHX = 0, trans_num = 0;
-	unsigned char ucPass = 1;
-	unsigned char ucInitCMD = 0;
-	unsigned char ucReadCMD = 0;
-	unsigned char ucIndex = 0;
+	int CHY = 0, CHX = 0, trans_num = 0;
     int RawMaxFailCount = 0;
     int RawMinFailCount = 0;
     int Win1FailCount = 0;
@@ -4083,9 +4025,6 @@ int viRunFWVerTest_3X()
 int viRunFWVerTest_6X()
 {
     int i = 0;
-    int ret = 0;
-    uint16_t *ic_crc, *ic_slave_crc;
-    uint8_t *pbuf, *buffer;
 
     if(ptl.ver <= PROTOCOL_V6_0_2) {
         PRINTF("%s, The protocol no support\n", __func__);
@@ -4178,13 +4117,9 @@ int viRunDACTest()
 
 void vfPrintSensorTestResult_V3(int inFunctions)
 {
-	int fd, ret;
-	unsigned int size;
-	char *pBuffer;
+	int ret;
     char timebuf[60];
-	char result_file_name[256] = {
-		0};
-	FILE *file;
+	char result_file_name[256] = {0};
 	FILE *result_file;
 
     if ((ucSensorTestResult & MICROSHORT_TEST) == MICROSHORT_TEST)
@@ -4275,13 +4210,10 @@ void vfPrintSensorTestResult_V3(int inFunctions)
 }
 void vfPrintSensorTestResult_V6(int inFunctions)
 {
-	int fd, ret;
-	unsigned int size;
+	int ret;
 	char tmp[2] = {"."};
     char timebuf[60],logst[60];
-	char result_file_name[256] = {
-		0};
-	FILE *file;
+	char result_file_name[256] = {0};
 	FILE *result_file;
 
     if ((ucSensorTestResult & MICROSHORT_TEST) == MICROSHORT_TEST)
@@ -4452,7 +4384,7 @@ int viRunAllNodeTest()
 }
 int init_sentest_array()
 {
-    int i = 0, j = 0;
+    int i = 0;
     //set short array
     ST.short_daltc = (short int**)calloc(4, sizeof(short int*));
     for(i = 0; i < 4; i++)
@@ -4751,7 +4683,6 @@ int ReadST_V3()
     //    int *ptr;
     int i;
     char buf[INI_MAX_PATH];
-    time_t rawtime;
     int inFunctions = 0;
 
     //read ini test  Criteria

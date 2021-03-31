@@ -259,11 +259,9 @@ int Func_BGData(int argc, char *argv[])
 int Func_CDC(int argc, char *argv[])
 {
     int ret = _FAIL;
-	int inFrames = 0;
 	char *type;
     if (argc >= 7)
     {
-		int inFrames = atoi(argv[7]);
 		type = argv[6];
 		ret = viRunCDCType(argv);
     }

@@ -511,7 +511,6 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
 {
     int ret = _SUCCESS;
 
-    int i = 0;
     #ifdef DEBUG_TRANSFER_DATA
     if(writelen > 0) {
         printf("Len %d,W:", writelen);

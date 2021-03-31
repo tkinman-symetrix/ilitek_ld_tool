@@ -173,7 +173,7 @@ int GetDFStartAddr(void) {
 }
 int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
 {
-    int ret = _SUCCESS, fd = 0, i = 0;
+    int ret = _SUCCESS, fd = 0;
     int iUpdate = NEED_UPGRADE_FW;
     unsigned char *pbuf = NULL, *buffer = NULL, ucTempData[8];
     //init variables
@@ -322,8 +322,8 @@ int FiremwareUpgrade(unsigned char *buffer)
     return _SUCCESS;
 }
 
-void hex_mapping_convert(unsigned int addr,unsigned char *buffer) {
-    unsigned int hex_fwaddr_start = 0;
+void hex_mapping_convert(unsigned int addr,unsigned char *buffer)
+{
     unsigned int hex_dfaddr_start = 0;
     unsigned int hex_icaddr_start = 0;
     unsigned int start = 0, count = 0, index = 0;
@@ -383,18 +383,12 @@ void hex_mapping_convert(unsigned int addr,unsigned char *buffer) {
 
 int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize)
 {
-    int ret = 0;
-    unsigned int update_len = 33;
     unsigned int exaddr = 0;
-    unsigned int i = 0, j = 0, k = 0, index;
-    unsigned int start_addr = 0xFFFF, hex_info_addr = 0,end_addr = 0xFFFFFF;
-    unsigned int hex_fwaddr_start = 0;
-    unsigned int hex_dfaddr_start = 0;
-    unsigned int hex_icaddr_start = 0;
+    unsigned int i = 0, j = 0, k = 0;
+    unsigned int start_addr = 0xFFFF, hex_info_addr = 0, end_addr = 0xFFFFFF;
     int count = 0;
     bool read_mapping = false;
-    uint8_t count_flag[9] = {0};
-    int len = 0, addr = 0, type = 0, old_addr = 0;
+    int len = 0, addr = 0, type = 0;
     for (i = 0; i < hexfilesize;)
     {
         int offset;
@@ -540,7 +534,6 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize
 int UpgradeFirmware_Pro1_6(unsigned char *buffer)
 {
     int ret = _SUCCESS;
-    unsigned int update_len = 33;
     unsigned int i = 0, j = 0, k = 0, DFdataChSum = 0, APdataChSum = 0;
     unsigned char iFileCheckSum = 0;
     unsigned char iRetCheckSum = 0;
@@ -637,8 +630,7 @@ int UpgradeFirmware_Pro1_6(unsigned char *buffer)
 int UpgradeFirmware_Pro1_7(unsigned char *buffer)
 {
     int ret = _SUCCESS;
-    unsigned int update_len = 33;
-    unsigned int ap_check = 0x0, df_check = 0x0, check = 0x0, get_Check;
+    unsigned int get_Check;
     unsigned int i = 0, j = 0, k = 0;
 
     upg.df_check = CheckFWCRC((upg.df_start_addr + 2), upg.df_end_addr, buffer);
@@ -837,7 +829,7 @@ int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
 }
 
 int Program_Slave_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
-    int k = 0, ret = _SUCCESS, i;
+    int ret = _SUCCESS, i;
     uint16_t dae_crc = 0;
     bool update = false, blmode = false;
 
@@ -918,8 +910,6 @@ int UpgradeFirmware_Pro1_8(unsigned char *buffer)
 {
     int ret = _SUCCESS, count = 0;
     unsigned int update_len = UPGRADE_LENGTH_BLV1_8;
-    unsigned int ap_check = 0x0, df_check = 0x0, check = 0x0, get_Check;
-    unsigned int i = 0, j = 0, k = 0;
 
     ret = SetDataLength_V6(update_len);
     for(count = 0; count < upg.blk_num; count++) {

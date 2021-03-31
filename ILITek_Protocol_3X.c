@@ -8,7 +8,6 @@
 int software_reset()
 {
     int ret = _FAIL;
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = (uint8_t)ILITEK_TP_CMD_SOFTWARE_RESET;
@@ -87,7 +86,6 @@ int GetProtocol()
 int PanelInfor_V3()
 {
     int ret=0;
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = (uint8_t)ILITEK_TP_CMD_GET_RESOLUTION;
@@ -243,7 +241,6 @@ int switch_testmode(uint8_t *para_m, uint8_t *para_f)
 int GetICMode()
 {
     int ret = _FAIL;
-    int count = 0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = (uint8_t)ILITEK_TP_CMD_READ_OP_MODE;
@@ -272,7 +269,6 @@ int SetProgramKey()
 int SetProgramKey_V3()
 {
     int ret = _FAIL;
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0]=(uint8_t)ILITEK_TP_CMD_WRITE_ENABLE;
@@ -287,7 +283,7 @@ int SetProgramKey_V3()
 
 int ChangeTOBL()
 {
-    int count = 0, ret = _FAIL;
+    int ret = _FAIL;
 
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
@@ -326,7 +322,6 @@ int ExitTestMode()
 int ChangeTOAP()
 {
     int ret = 0; 
-    int count=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0]=(uint8_t)ILITEK_TP_CMD_SET_AP_MODE;
@@ -404,7 +399,6 @@ int WriteAPCodeKey(unsigned int ap_end_addr,unsigned int ap_check)
 int EraseDataFlash()
 {
     int ret=0;
-    int count=0;
     uint8_t Wbuff[64] = {0xFF};
 
     if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] == 0x07)
@@ -463,7 +457,6 @@ int CheckBusy_3X(int count, int delay)
 unsigned int GetCodeCheckSum(uint8_t ucType)
 {
     int ret=0;
-    int count=0;
     unsigned int uiCheckSum=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
@@ -484,8 +477,7 @@ unsigned int GetCodeCheckSum(uint8_t ucType)
 
 uint32_t SetFlashAddress(uint32_t addr)
 {
-    int ret = _SUCCESS;
-    uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
+    uint8_t Wbuff[64] = {0};
 
     Wbuff[0] = ILITEK_TP_CMD_SET_FLASH_ADDRESS;
     Wbuff[3] = addr & 0xFF;
@@ -550,7 +542,7 @@ uint32_t SaveFlashFile(uint8_t *buff, uint32_t start, uint32_t len, char *path) 
 }
 
 int32_t GetFlashData_V3(uint32_t start, uint32_t len, char *path) {
-    uint8_t Wbuff[64] = {0}, *Rbuff = NULL, *buff = NULL;
+    uint8_t *Rbuff = NULL, *buff = NULL;
     int t_len = 32, addr = 0, count = 0;
 
     if (ChangeToBootloader() == _FAIL)

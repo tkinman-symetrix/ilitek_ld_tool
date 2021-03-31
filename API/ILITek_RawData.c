@@ -37,7 +37,6 @@ FILE *result_file;
 int viRunCreateBenchMark_6X(int argc, char *argv[])
 {
     int ret = _SUCCESS;
-    int inCounts = 0;
     int CHX = 0, CHY = 0;
     int d_len = 0;   //d_len: data total length.
     int max = atoi(argv[6]), min = atoi(argv[7]);
@@ -144,13 +143,11 @@ int viRunCDCType_3X(char *type, int inFrames) {
     int ret = _SUCCESS, len = 0;
     int inCounts = 0;
     int CHX = 0, CHY = 0;
-    int d_len = 0;   //d_len: data total length.
     uint8_t mctype = 0;
     uint8_t sctype = 0;
     uint8_t mc_offset = 0;
     uint8_t sc_offset = 0;
     uint8_t keytype = 0;
-    uint8_t u8DataInfor;
     int report[300][300];
     int max = 0, min = 0xFFFF;
     int reportkey[3][50];
@@ -480,7 +477,6 @@ int viRunBGMinusCDCData_6X(int inFrames)
 int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode)
 {
     int ret = 0;
-    int count = 0;
     uint8_t Wbuff[64] = {0};
 
     Wbuff[0] = 0xF3;
@@ -498,7 +494,6 @@ int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode)
 int viInitRawData_6X(unsigned char cmd, int delay_count)
 {
     int ret = _SUCCESS;
-    int count = 0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = ILITEK_TP_CMD_SET_CDC_INITOAL_V6;
@@ -526,7 +521,6 @@ int viInitRawData_6X(unsigned char cmd, int delay_count)
 int viInitRawData_3Para_3X(unsigned char ucCMDInit, unsigned char ucCMDMode, unsigned char ucCMDCounts)
 {
     int ret = 0;
-    int count = 0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = 0xF3;
@@ -793,8 +787,7 @@ int viCreateCDCReportFile(char *type)
 {
     int ret = _SUCCESS;
     time_t rawtime;
-	char tmp[2] = {"."};
-    char timebuf[60],logst[60];
+    char timebuf[60];
     struct tm *timeinfo;
     char cdc_type[256];
     char interface[4];
