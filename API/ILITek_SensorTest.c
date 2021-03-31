@@ -478,7 +478,7 @@ void vfReadBenchMarkValue(const char *title, int BenchMarkBuf[][_MaxChanelNum_],
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
     unsigned char ucIndex;
-    int iCount;
+    unsigned int iCount;
     char key[10];
     char *strValue;
     char strData[10];
@@ -1848,8 +1848,8 @@ int viRunUniformityTest_3X()
     int inIndexCounts;
     int inSum;
     int inDeltaValue1;
-    int ucloopCh_X;
-    int ucloopCh_Y;
+    unsigned int ucloopCh_X;
+    unsigned int ucloopCh_Y;
 
     PRINTF("\n");
     PRINTF("Uniformity Test Criteria:\n");
@@ -2167,7 +2167,7 @@ int viRunUniformityTest_3X()
 int viRunAllNodeTest_3X()
 {
     int ret = 1;
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     unsigned char ucPass = 1;
     int PanelFailCount = 0;
     int TXFailCount = 0;
@@ -2313,8 +2313,8 @@ int viRunOpenTest_3X_NewFlow()
 	int inSum;
 	int inTempCheckValue;
     int xdiff_fail_count = 0, ydiff_fail_count = 0;
-	int ucloopCh_X;
-	int ucloopCh_Y;
+	unsigned int ucloopCh_X;
+	unsigned int ucloopCh_Y;
 	printf("\n");
 	PRINTF("Open Test Criteria:\n");
 	PRINTF("Open Test 20V-6V Threshold = %d\n",ST.Open_Threshold);
@@ -2566,7 +2566,7 @@ int viRunOpenTest_3X_NewFlow()
 
 int OpenTestKeyThreshold() {
     int ret = _SUCCESS;
-    int count = 0;
+    unsigned int count = 0;
 
     PRINTF("Key_Threshold = %d\n\n", ST.Open.key_thr);
     PRINTF("Open Key Datas\n       ");
@@ -2593,7 +2593,7 @@ int OpenTestKeyThreshold() {
 }
 
 int OpenTestThreshold() {
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     int ret = _SUCCESS;
 
     PRINTF("Open Datas: \n       ");
@@ -2625,7 +2625,7 @@ int OpenTestThreshold() {
 }
 
 int OpenTestRxDiff() {
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     int ret = _SUCCESS;
     int RXFailCount = 0;
     int threshold = 0;
@@ -2689,7 +2689,7 @@ int OpenTestRxDiff() {
 }
 
 int OpenTestTxAverageTest() {
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     int ret = _SUCCESS;
     int count = 0;
     int threshold = 0;
@@ -2748,8 +2748,8 @@ int OpenTestTxAverageTest() {
 int viRunOpenTest_3X()
 {
     int ret = _FAIL;;
-    int inCounts = 0;
-    int CHX = 0, CHY = 0;
+    unsigned int inCounts = 0;
+    unsigned int CHX = 0, CHY = 0;
     int TXFailCount = 0;
     bool TxAverageStatus = _SUCCESS;
     bool RxDiffStatus = _SUCCESS;
@@ -3086,7 +3086,7 @@ int viRunSelfTest_3X()
 {
     int ret = _SUCCESS;
     int inCounts = 0;
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     unsigned char ucPass = 1;
     switch (KernelVersion[2])
     {
@@ -3226,7 +3226,7 @@ int viRunSelfTest_3X()
 int viRunDACTest_3X()
 {
     int ret = _FAIL;
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     unsigned char ucPass = 1;
 
     if (ST.DAC_SC_P_Maximum == -1)
@@ -3707,7 +3707,8 @@ int viRunMircoOpenTest_3X()
 int viRunMircoOpenTest_6X()
 {
 	int ret = _SUCCESS;
-	int CHY = 0, CHX = 0, trans_num = 0;
+	unsigned int CHY = 0, CHX = 0;
+	int trans_num = 0;
     int TxAverageStatus = _SUCCESS, RxDiffStatus = _SUCCESS;
 
 	PRINTF("\nMirco Open Test Criteria:\n");
@@ -3851,7 +3852,8 @@ int NodeTest_V6(const char *name, SensorTest_Node **delac, SensorTest_BenBenchma
 int viRunUniformityTest_6X()
 {
 	int ret = _SUCCESS;
-	int CHY = 0, CHX = 0, trans_num = 0;
+	unsigned int CHY = 0, CHX = 0;
+	int trans_num = 0;
     int RawMaxFailCount = 0;
     int RawMinFailCount = 0;
     int Win1FailCount = 0;
@@ -4385,7 +4387,8 @@ int viRunAllNodeTest()
 }
 int init_sentest_array()
 {
-    int i = 0;
+    unsigned int i = 0;
+
     //set short array
     ST.short_daltc = (short int**)calloc(4, sizeof(short int*));
     for(i = 0; i < 4; i++)

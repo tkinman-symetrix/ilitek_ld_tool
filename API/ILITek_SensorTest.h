@@ -248,8 +248,8 @@ typedef struct _SensorTest_Criteria_
     unsigned short *master_crc;
     unsigned short *slave_crc;
     char *hexfile;
-    int x_ch;
-    int y_ch;
+    unsigned int x_ch;
+    unsigned int y_ch;
 } SensorTest_Criteria;
 
 /* Extern macro -------------------------------------------------------------*/

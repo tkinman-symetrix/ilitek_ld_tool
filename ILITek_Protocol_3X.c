@@ -506,7 +506,7 @@ uint32_t SaveFlashFile(uint8_t *buff, uint32_t start, uint32_t len, char *path) 
     time_t datetime;
     char timebuf[60],fileName[256];
     FILE *result_file;
-    int  i = 0, count = 0;
+    unsigned int  i = 0, count = 0;
     bool f_exist = false;
 
     time ( &datetime);
@@ -543,7 +543,8 @@ uint32_t SaveFlashFile(uint8_t *buff, uint32_t start, uint32_t len, char *path) 
 
 int32_t GetFlashData_V3(uint32_t start, uint32_t len, char *path) {
     uint8_t *Rbuff = NULL, *buff = NULL;
-    int t_len = 32, addr = 0, count = 0;
+    int t_len = 32, count = 0;
+	unsigned int addr = 0;
 
     if (ChangeToBootloader() == _FAIL)
         return _FAIL;

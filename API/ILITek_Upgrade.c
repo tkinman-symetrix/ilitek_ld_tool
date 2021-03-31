@@ -97,7 +97,7 @@ int FW_ForceUpdate_Chk(unsigned char *buffer)
 {
     int ret = _SUCCESS;
 	uint16_t get_Check = 0;
-    int i = 0;
+    unsigned int i = 0;
 
     if(GetICMode() != _FAIL){
         if (ICMode == OP_MODE_BOOTLOADER) {
@@ -215,12 +215,10 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
     //initial pbuf and set pbuf size
     memset(pbuf, 0, upg.hexfilesize);
     //read hex file content to pbuf
-    ret = read(fd, pbuf, upg.hexfilesize);
-    if (ret != upg.hexfilesize)
-    {
+    if (read(fd, pbuf, upg.hexfilesize) != upg.hexfilesize)
         PRINTF("%s, read failed, ret != readsize\n", __func__);
-    }
-    PRINTF("%s, read hex file to memoery, completed\n", __func__);
+	else
+    	PRINTF("%s, read hex file to memoery, completed\n", __func__);
     buffer = (unsigned char *)malloc(ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE);
     if (buffer == NULL)
     {
@@ -381,14 +379,14 @@ void hex_mapping_convert(unsigned int addr,unsigned char *buffer)
     }
 }
 
-int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize)
+int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int hexfilesize)
 {
     unsigned int exaddr = 0;
     unsigned int i = 0, j = 0, k = 0;
     unsigned int start_addr = 0xFFFF, hex_info_addr = 0, end_addr = 0xFFFFFF;
-    int count = 0;
+    unsigned int count = 0;
     bool read_mapping = false;
-    int len = 0, addr = 0, type = 0;
+    unsigned int len = 0, addr = 0, type = 0;
     for (i = 0; i < hexfilesize;)
     {
         int offset;
@@ -772,9 +770,10 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
 }
 
 int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
-    int k = 0, ret = _SUCCESS, i;
+    int ret = _SUCCESS;
     uint16_t dae_crc = 0, ic_crc = 0;
     uint8_t Rbuff[3] = {0};
+	unsigned int k, i;
 
     dae_crc = CheckFWCRC(upg.blk[block].start, upg.blk[block].end - 1, buffer);
     ret = WriteFlashEnable_BL1_8(upg.blk[block].start, upg.blk[block].end);
@@ -907,8 +906,8 @@ END:
 
 int UpgradeFirmware_Pro1_8(unsigned char *buffer)
 {
-    int ret = _SUCCESS, count = 0;
-    unsigned int update_len = UPGRADE_LENGTH_BLV1_8;
+    int ret = _SUCCESS;
+    unsigned int count = 0, update_len = UPGRADE_LENGTH_BLV1_8;
 
     ret = SetDataLength_V6(update_len);
     for(count = 0; count < upg.blk_num; count++) {

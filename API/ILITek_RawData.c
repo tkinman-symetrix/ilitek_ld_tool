@@ -37,7 +37,7 @@ FILE *result_file;
 int viRunCreateBenchMark_6X(int argc, char *argv[])
 {
     int ret = _SUCCESS;
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
     int d_len = 0;   //d_len: data total length.
     int max = atoi(argv[6]), min = atoi(argv[7]);
 
@@ -140,9 +140,9 @@ int viRunBGData_6X(int inFrames)
 }
 
 int viRunCDCType_3X(const char *type, int inFrames) {
-    int ret = _SUCCESS, len = 0;
+    int ret = _SUCCESS;
     int inCounts = 0;
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0, len = 0;
     uint8_t mctype = 0;
     uint8_t sctype = 0;
     uint8_t mc_offset = 0;
@@ -269,8 +269,8 @@ int viRunCDCType_3X(const char *type, int inFrames) {
 int viRunCDCType_6X(const char *type, int inFrames) {
     int ret = _SUCCESS;
     int inCounts = 0;
-    int CHX = 0, CHY = 0;
-    int d_len = 0;   //d_len: data total length.
+    unsigned int CHX = 0, CHY = 0;
+    unsigned int d_len = 0;   //d_len: data total length.
     uint8_t mctype = 0, sctype = 0, mckeytype = 0, sckeytype = 0;
     int report[300][300];
     int reportkey[3][50]; //Lego support max key number is 50, data:50 self x:50 self y:1
@@ -633,12 +633,12 @@ int viGetRawData_6X(unsigned int d_len)
 {
     unsigned int uiReadCounts = 0;
     unsigned int uiIndex = 0;
-    int inNeedCounts = d_len, t_len = RAW_DATA_TRANSGER_V6_LENGTH;
-    int inGettedCounts = 0;
+    unsigned int inNeedCounts = d_len;
+    unsigned int inGettedCounts = 0, t_len = RAW_DATA_TRANSGER_V6_LENGTH;
     int ret = 0;
     uint16_t *p_s16Data;
     uint8_t Wbuff[64] = {0}, *Rbuff = NULL;
-    int header = 6;     //cmd 1byte, sense channel 2byte, drive channel 2byte, checksum 1byte.
+    unsigned int header = 6;     //cmd 1byte, sense channel 2byte, drive channel 2byte, checksum 1byte.
     int start = 5;      //cmd 1byte, sense channel 2byte, drive channel 2byte.
     int id_len = 0;     //report id 1byte, I2C not use it, USB only use.
 
@@ -792,8 +792,8 @@ int viCreateCDCReportFile(const char *type)
     char cdc_type[256];
     char interface[4];
     int data_format = 16;
-	char result_file_name[256] = {
-		0};
+	char result_file_name[256] = {0};
+
     time(&rawtime);
     timeinfo = localtime (&rawtime);
     if(access("Record",0) == _FAIL)
@@ -859,7 +859,7 @@ int viCreateCDCReportFile(const char *type)
 }
 
 int viWriteCDCReport(int count, int report[][300], int max, int min, int report_key[][50]) {
-    int CHX = 0, CHY = 0;
+    unsigned int CHX = 0, CHY = 0;
 
     fprintf(result_file, "===================================================================\n");
     fprintf(result_file, "No                    = %d\n", count);

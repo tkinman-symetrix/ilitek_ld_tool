@@ -458,7 +458,8 @@ uint32_t ReadFlash_V6(uint8_t type, uint8_t *buff, uint32_t len)
 
 int32_t GetFlashData_V6(uint32_t start, uint32_t len, char *path) {
     uint8_t *Rbuff = NULL, *buff = NULL;
-    int t_len = 4096, addr = 0, remain_len = 0;
+    int t_len = 4096, remain_len = 0;
+	unsigned int addr = 0;
 
     if (ChangeToBootloader() == _FAIL)
         return _FAIL;
