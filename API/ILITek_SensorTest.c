@@ -4194,11 +4194,12 @@ void vfPrintSensorTestResult_V3(int inFunctions)
         vfSaveFWVerTestLog_V3(result_file);
     if ((inFunctions & MICROSHORT_TEST) == MICROSHORT_TEST)
 	    vfSaveShortTestLog_V3(result_file);
-    if ((inFunctions & OPEN_TEST) == OPEN_TEST)
+    if ((inFunctions & OPEN_TEST) == OPEN_TEST) {
         if(ST.UseNewFlow == 1)
             vfSaveOpenTestLog_NewFlow(result_file);
         else
             vfSaveOpenTestLog_V3(result_file);
+    }
     if ((inFunctions & SELF_TEST) == SELF_TEST)
         vfSaveSelfTestLog(result_file);
     if ((inFunctions & DAC_TEST) == DAC_TEST)

@@ -550,7 +550,7 @@ int32_t GetFlashData_V3(uint32_t start, uint32_t len, char *path) {
     Rbuff = (uint8_t *)calloc(len + t_len, sizeof(uint8_t));
     GetFWVersion();
     GetProtocol();
-    if(ptl.ver&0xFFFF00 == 0x10700 && FWVersion[3] < 3) {
+    if((ptl.ver&0xFFFF00) == 0x10700 && FWVersion[3] < 3) {
         PRINTF("This BL no support function\n");
         goto nosupport;
     }
