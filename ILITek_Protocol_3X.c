@@ -503,7 +503,7 @@ uint32_t SaveFlashFile(uint8_t *buff, uint32_t start, uint32_t len, char *path) 
     struct tm *timeinfo;
     time_t datetime;
     char timebuf[60],fileName[256];
-    FILE *result_file;
+    FILE *result_file = NULL;
     unsigned int  i = 0, count = 0;
     bool f_exist = false;
 
