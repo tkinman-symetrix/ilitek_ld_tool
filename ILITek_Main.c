@@ -259,12 +259,8 @@ int Func_BGData(int argc, char *argv[])
 int Func_CDC(int argc, char *argv[])
 {
     int ret = _FAIL;
-	char *type;
     if (argc >= 7)
-    {
-		type = argv[6];
 		ret = viRunCDCType(argv);
-    }
 
     return ret;
 }

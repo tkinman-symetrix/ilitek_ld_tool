@@ -435,13 +435,12 @@ int CheckBusy(int count, int delay, int type) {
 
 int CheckBusy_3X(int count, int delay)
 {
-    int ret = _SUCCESS;
     int busyState=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
     do
     {
         Wbuff[0]=0x80;
-        ret = TransferData(Wbuff, 1, Rbuff, 1, 1000);
+        TransferData(Wbuff, 1, Rbuff, 1, 1000);
         busyState=Rbuff[0];
         if(busyState!=0x50)
             usleep(delay * 1000);
@@ -456,19 +455,18 @@ int CheckBusy_3X(int count, int delay)
 
 unsigned int GetCodeCheckSum(uint8_t ucType)
 {
-    int ret=0;
     unsigned int uiCheckSum=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0]=ILITEK_TP_GET_AP_CRC;
     if(ucType!=0)
     {
-        ret=TransferData(Wbuff, 1, Rbuff, 1, 1000);
+        TransferData(Wbuff, 1, Rbuff, 1, 1000);
         uiCheckSum=Rbuff[0];
     }
     else
     {
-        ret=TransferData(Wbuff, 1, Rbuff, 4, 1000);
+        TransferData(Wbuff, 1, Rbuff, 4, 1000);
         uiCheckSum=Rbuff[0]+(Rbuff[1] * 256)+(Rbuff[2] * 256 * 256)+(Rbuff[3] * 256 *256 * 256);
     }
     //PRINTF("%s, Check Sum=%u,ret=%u\n", __func__, uiCheckSum,ret);

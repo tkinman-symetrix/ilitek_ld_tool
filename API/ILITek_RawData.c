@@ -493,13 +493,12 @@ int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode)
 
 int viInitRawData_6X(unsigned char cmd, int delay_count)
 {
-    int ret = _SUCCESS;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0] = ILITEK_TP_CMD_SET_CDC_INITOAL_V6;
     Wbuff[1] = cmd;
     if (inConnectStyle == _ConnectStyle_I2C_) {
-        ret = TransferData(Wbuff, 2, Rbuff, 0, 1000);
+        TransferData(Wbuff, 2, Rbuff, 0, 1000);
         if (CheckBusy(1000, delay_count, SYSTEM_BUSY|INITIAL_BUSY) < 0)
         {
             PRINTF("%s, CDC Initial: CheckBusy Failed\n", __func__);

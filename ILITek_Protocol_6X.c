@@ -337,13 +337,12 @@ int SetAccessSlave(int number, uint8_t type)
 
 int CheckBusy_6X(int count, int delay, int type)
 {
-    int ret=0;
     int busyState=0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
     do
     {
         Wbuff[0]=ILITEK_TP_CMD_GET_SYSTEM_BUSY;
-        ret = TransferData(Wbuff, 1, Rbuff, 1, 1000);
+        TransferData(Wbuff, 1, Rbuff, 1, 1000);
         busyState=Rbuff[0] & (SYSTEM_RETRY + type);
         if(busyState!=SYSTEM_RETRY)
             usleep(delay * 1000);
