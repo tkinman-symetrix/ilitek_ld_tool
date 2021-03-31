@@ -110,7 +110,7 @@ int GetKeyInfor_V3(int key_num) {
     uint8_t Wbuff[64] = {0}, *Rbuff;
 
 	int r_len = key_num * ILITEK_KEYINFO_FORMAT_LENGTH + ILITEK_KEYINFO_V3_HEADER;
-    Rbuff = calloc(r_len, sizeof(uint8_t));
+    Rbuff = (uint8_t *)calloc(r_len, sizeof(uint8_t));
     Wbuff[0] = (unsigned char)ILITEK_TP_CMD_GET_KEY_INFORMATION;
     ret = TransferData(Wbuff, 1, Rbuff, r_len, 1000);
     free(Rbuff);
@@ -228,8 +228,8 @@ int switch_testmode(uint8_t *para_m, uint8_t *para_f)
     int ret = _FAIL;
 
     buff[0] = 0xD5;
-    buff[1] = hex_2_dec(para_m, 2);
-    buff[2] = hex_2_dec(para_f, 2);
+    buff[1] = hex_2_dec((char *)para_m, 2);
+    buff[2] = hex_2_dec((char *)para_f, 2);
     ret = TransferData(buff, 3, NULL, 0, 1000);
     PRINTF("%s, ret=%u\n", __func__, ret);
     if(ret != _FAIL)
@@ -547,8 +547,8 @@ int32_t GetFlashData_V3(uint32_t start, uint32_t len, char *path) {
 
     if (ChangeToBootloader() == _FAIL)
         return _FAIL;
-    buff = calloc(t_len, sizeof(uint8_t));
-    Rbuff = calloc(len + t_len, sizeof(uint8_t));
+    buff = (uint8_t *)calloc(t_len, sizeof(uint8_t));
+    Rbuff = (uint8_t *)calloc(len + t_len, sizeof(uint8_t));
     GetFWVersion();
     GetProtocol();
     if(ptl.ver&0xFFFF00 == 0x10700 && FWVersion[3] < 3) {

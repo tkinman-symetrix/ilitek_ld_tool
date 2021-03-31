@@ -40,7 +40,7 @@ int GetKeyInfor_V6(int key_num) {
     uint8_t Wbuff[64] = {0}, *Rbuff;
 
 	int r_len = key_num * ILITEK_KEYINFO_FORMAT_LENGTH + ILITEK_KEYINFO_V6_HEADER;
-    Rbuff = calloc(r_len, sizeof(uint8_t));
+    Rbuff = (uint8_t *)calloc(r_len, sizeof(uint8_t));
     Wbuff[0] = (unsigned char)ILITEK_TP_CMD_GET_KEY_INFORMATION;
     ret = TransferData(Wbuff, 1, Rbuff, r_len, 1000);
     ptl.key_mode = Rbuff[0];
@@ -462,8 +462,8 @@ int32_t GetFlashData_V6(uint32_t start, uint32_t len, char *path) {
 
     if (ChangeToBootloader() == _FAIL)
         return _FAIL;
-    buff = calloc(t_len, sizeof(uint8_t));
-    Rbuff = calloc(ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE, sizeof(uint8_t));
+    buff = (uint8_t *)calloc(t_len, sizeof(uint8_t));
+    Rbuff = (uint8_t *)calloc(ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE, sizeof(uint8_t));
 
     for(addr = start; addr < start + len;) {
         remain_len = start + len - addr;

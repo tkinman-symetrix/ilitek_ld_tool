@@ -288,7 +288,7 @@ int Func_SensorTest(int argc, char *argv[])
 		if (argc == 8 && strcmp(argv[7], "null") != 0)
 		{
 			memset(IniPath, 0, sizeof(IniPath));
-			strcpy(IniPath, argv[7]);
+			strcpy((char *)IniPath, argv[7]);
 		}
         ret = viRunSensorTest(inFunctions);
     }
@@ -314,7 +314,7 @@ int Func_FWUpgrade(int argc, char *argv[])
     char *Version = NULL;
     unsigned char *filename;
     int ret = _FAIL;
-    filename = malloc(UPGRAD_FILE_PATH_SIZE);
+    filename = (unsigned char *)malloc(UPGRAD_FILE_PATH_SIZE);
     memset(filename, 0x0, UPGRAD_FILE_PATH_SIZE);
     switch_irq(0);
     if (argc >= 7)
@@ -324,7 +324,7 @@ int Func_FWUpgrade(int argc, char *argv[])
             Version = argv[7];
         }
         PRINTF("Hex filename:%s\n", argv[6]);
-        strcat(filename, argv[6]);
+        strcat((char *)filename, argv[6]);
         PRINTF("Hex filename:%s\n", filename);
         ret = viRunFiremwareUpgrade(filename, Version);
     }
@@ -440,7 +440,7 @@ int Func_Sru(int argc, char *argv[])
 }
 int Func_Stu(int argc, char *argv[])
 {
-    return switch_testmode(argv[2], argv[3]);
+    return switch_testmode((uint8_t *)argv[2], (uint8_t *)argv[3]);
 }
 
 int PrintInfor(char *argv[])
@@ -750,7 +750,7 @@ int DearlWithFunctions(int argc, char *argv[])
 unsigned char chartohex(unsigned char *str)
 {
 	unsigned int temp;
-	sscanf(str, "%x", &temp);
+	sscanf((char *)str, "%x", &temp);
 
 	PRINTF("the temp is %x\n", temp);
 	return temp;
@@ -770,7 +770,7 @@ int viConsoleData(char *argv[])
 
 
     for(count = 0; count < inWlen; count++) {
-        Wbuff[count] = (unsigned char)chartohex(argv[5 + count + offset]);
+        Wbuff[count] = (unsigned char)chartohex((unsigned char *)argv[5 + count + offset]);
     }
 
     if(TransferData(Wbuff, inWlen, Rbuff, inRlen, 1000) < 0)
@@ -804,13 +804,13 @@ int viScript(char *argv[])
 
 	while(!feof(fp))
 	{
-		if(fgets(u8_chk_buf, MAX_SCRIPT_CMD_SIZE, fp)!=NULL)
+		if(fgets((char *)u8_chk_buf, MAX_SCRIPT_CMD_SIZE, fp)!=NULL)
 		{
 			if(CHK_I2C(u8_chk_buf))
 			{
-				sscanf(u8_chk_buf, "I2C %d %d", &inWlen, &inRlen);
+				sscanf((char *)u8_chk_buf, "I2C %d %d", &inWlen, &inRlen);
 				/* Parser write data */
-				for(i=0; i<strlen(u8_chk_buf); i++)
+				for(i=0; i<strlen((char *)u8_chk_buf); i++)
 				{
 					if(*(u8_chk_buf+i)==' ')
 					{
@@ -820,7 +820,7 @@ int viScript(char *argv[])
 						}
 						else
 						{
-							sscanf((u8_chk_buf+i), "%2X", (int *)&buff[u8_chk_cnt-3]);
+							sscanf((char *)(u8_chk_buf+i), "%2X", (int *)&buff[u8_chk_cnt-3]);
 						}
 					}
 				}
@@ -836,7 +836,7 @@ int viScript(char *argv[])
 			else if(CHK_DELAY(u8_chk_buf))
 			{
 				u16_delay_time = 1;
-				sscanf(u8_chk_buf, "Delay %d", &u16_delay_time);
+				sscanf((char *)u8_chk_buf, "Delay %d", &u16_delay_time);
 				usleep(u16_delay_time*1000);
 			}
 
@@ -882,7 +882,7 @@ int readn(int fd, void *vptr, size_t n)
 {
 	size_t nleft = n;
 	ssize_t nread = 0;
-	unsigned char *ptr = (char *)vptr;
+	unsigned char *ptr = (unsigned char *)vptr;
 
 	while(nleft > 0)
 	{
@@ -925,7 +925,7 @@ ssize_t readline(int sockfd, void *buf, size_t maxline)
 {
 	int ret;
 	int nread;
-	char *bufp = buf;
+	char *bufp = (char *)buf;
 	int nleft = maxline;
 	int count = 0;
 

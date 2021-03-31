@@ -93,7 +93,7 @@ int debug_tool_get_data_form_kernel(void)
     nlh->nlmsg_pid = 100;//getpid();  /* self pid */
     nlh->nlmsg_flags = 0;
     /* Fill in the netlink message payload */
-    strcpy(NLMSG_DATA(nlh), "Hello World!");
+    strcpy((char *)NLMSG_DATA(nlh), "Hello World!");
     //NLMSG_DATA(nlh)=file_fw_data;
     // memcpy(NLMSG_DATA(nlh),file_fw_data,MAX_PAYLOAD);
     ret = mkdir("/sdcard/ILITEK/", 0777);
@@ -105,7 +105,7 @@ int debug_tool_get_data_form_kernel(void)
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
     PRINTF ( "\007The current date/time is: %s", asctime (timeinfo) );
-    strcat(filename_start, "/sdcard/ILITEK/");
+    strcat((char *)filename_start, "/sdcard/ILITEK/");
 #if 0
     sprintf(buf, "%d_", (int)(timeinfo->tm_year));
     strcat(filename_start, buf);
@@ -114,19 +114,19 @@ int debug_tool_get_data_form_kernel(void)
     strcat(filename_start, buf);
 #endif
     memset(buf,0,32);
-    sprintf(buf, "%d_", (int)(timeinfo->tm_mday));
-    strcat(filename_start, buf);
+    sprintf((char *)buf, "%d_", (int)(timeinfo->tm_mday));
+    strcat((char *)filename_start, (char *)buf);
     memset(buf,0,32);
-    sprintf(buf, "%d_", (int)(timeinfo->tm_hour));
-    strcat(filename_start, buf);
+    sprintf((char *)buf, "%d_", (int)(timeinfo->tm_hour));
+    strcat((char *)filename_start, (char *)buf);
     memset(buf,0,32);
-    sprintf(buf, "%d_", (int)(timeinfo->tm_min));
-    strcat(filename_start, buf);
+    sprintf((char *)buf, "%d_", (int)(timeinfo->tm_min));
+    strcat((char *)filename_start, (char *)buf);
     memset(buf,0,32);
-    sprintf(buf, "%d", (int)(timeinfo->tm_sec));
-    strcat(filename_start, buf);
+    sprintf((char *)buf, "%d", (int)(timeinfo->tm_sec));
+    strcat((char *)filename_start, (char *)buf);
     PRINTF("filename_start = %s\n", filename_start);
-    raw_log_file_csvSd = filename_start;//asctime (timeinfo);
+    raw_log_file_csvSd = (char *)filename_start;//asctime (timeinfo);
     memset(raw_log_file_csvSd_root,0,512);
     memcpy(raw_log_file_csvSd_root,raw_log_file_csvSd,strlen(raw_log_file_csvSd));
     memset(raw_log_file_csvSd_tmp, 0, 512);
@@ -199,8 +199,8 @@ int debug_tool_get_data_form_kernel(void)
 #ifdef SAVE_DEBUGLOG
             if(line_num == 0)
             {
-                sprintf(filename_end, "_%03d.csv", (int)(file_count + 1));
-                strcat(raw_log_file_csvSd_tmp, filename_end);
+                sprintf((char *)filename_end, "_%03d.csv", (int)(file_count + 1));
+                strcat(raw_log_file_csvSd_tmp, (char *)filename_end);
                 raw_log_file_csvSd = raw_log_file_csvSd_tmp;
                 fp_csvSd = fopen(raw_log_file_csvSd, "w");
                 if (fp_csvSd == NULL)
@@ -373,7 +373,7 @@ void vfRunUSBDebug_3X()
                     time ( &rawtime );
                     timeinfo = localtime ( &rawtime );
                     PRINTF ( "\007The current date/time is: %s", asctime (timeinfo) );
-                    strcat(filename_start, "/sdcard/ILITEK/");
+                    strcat((char *)filename_start, "/sdcard/ILITEK/");
 #if 0
                     sprintf(buf, "%d_", (int)(timeinfo->tm_year));
                     strcat(filename_start, buf);
@@ -382,19 +382,19 @@ void vfRunUSBDebug_3X()
                     strcat(filename_start, buf);
 #endif
                     memset(buf,0,32);
-                    sprintf(buf, "%d_", (int)(timeinfo->tm_mday));
-                    strcat(filename_start, buf);
+                    sprintf((char *)buf, "%d_", (int)(timeinfo->tm_mday));
+                    strcat((char *)filename_start, (char *)buf);
                     memset(buf,0,32);
-                    sprintf(buf, "%d_", (int)(timeinfo->tm_hour));
-                    strcat(filename_start, buf);
+                    sprintf((char *)buf, "%d_", (int)(timeinfo->tm_hour));
+                    strcat((char *)filename_start, (char *)buf);
                     memset(buf,0,32);
-                    sprintf(buf, "%d_", (int)(timeinfo->tm_min));
-                    strcat(filename_start, buf);
+                    sprintf((char *)buf, "%d_", (int)(timeinfo->tm_min));
+                    strcat((char *)filename_start, (char *)buf);
                     memset(buf,0,32);
-                    sprintf(buf, "%d", (int)(timeinfo->tm_sec));
-                    strcat(filename_start, buf);
+                    sprintf((char *)buf, "%d", (int)(timeinfo->tm_sec));
+                    strcat((char *)filename_start, (char *)buf);
                     PRINTF("filename_start = %s\n", filename_start);
-                    raw_log_file_csvSd = filename_start;//asctime (timeinfo);
+                    raw_log_file_csvSd = (char *)filename_start;//asctime (timeinfo);
                     memset(raw_log_file_csvSd_root,0,512);
                     memcpy(raw_log_file_csvSd_root,raw_log_file_csvSd,strlen(raw_log_file_csvSd));
                     memset(raw_log_file_csvSd_tmp, 0, 512);
@@ -425,8 +425,8 @@ void vfRunUSBDebug_3X()
 #ifdef SAVE_DEBUGLOG
                             if(line_num == 0)
                             {
-                                sprintf(filename_end, "_%03d.csv", (int)(file_count + 1));
-                                strcat(raw_log_file_csvSd_tmp, filename_end);
+                                sprintf((char *)filename_end, "_%03d.csv", (int)(file_count + 1));
+                                strcat(raw_log_file_csvSd_tmp, (char *)filename_end);
                                 raw_log_file_csvSd = raw_log_file_csvSd_tmp;
                                 fp_csvSd = fopen(raw_log_file_csvSd, "w");
                                 if (fp_csvSd == NULL)
@@ -489,8 +489,8 @@ void vfRunUSBDebug_3X()
 #ifdef SAVE_DEBUGLOG
                             if(line_num == 0)
                             {
-                                sprintf(filename_end, "_%03d.csv", (int)(file_count + 1));
-                                strcat(raw_log_file_csvSd_tmp, filename_end);
+                                sprintf((char *)filename_end, "_%03d.csv", (int)(file_count + 1));
+                                strcat(raw_log_file_csvSd_tmp, (char *)filename_end);
                                 raw_log_file_csvSd = raw_log_file_csvSd_tmp;
                                 fp_csvSd = fopen(raw_log_file_csvSd, "w");
                                 if (fp_csvSd == NULL)

@@ -168,7 +168,7 @@ char *GetIniKeyString(char *title, char *key, char *filename)
     bool FindDataByte = false;
     int buteCount = 0;
 
-    szLine = calloc(8192, sizeof(unsigned char));
+    szLine = (unsigned char *)calloc(8192, sizeof(unsigned char));
     if ((fp = fopen(filename, ("rb"))) == NULL)
     {
         PRINTF("have no such file :%s\n",filename);
@@ -226,7 +226,7 @@ char *GetIniKeyString(char *title, char *key, char *filename)
             tmp = strchr(szLine, '=');
             if ((tmp != NULL) && (flag == 1))
             {
-                splitResult = strtok(szLine,"=");
+                splitResult = strtok((char *)szLine,"=");
                 //if (strstr(szLine, key) != NULL)
                 if (splitResult != NULL && strstr(splitResult, key) != NULL)
                 {
@@ -256,7 +256,7 @@ char *GetIniKeyString(char *title, char *key, char *filename)
                 strcpy(tmpstr, "[");
                 strcat(tmpstr, title);
                 strcat(tmpstr, "]");
-                if (strncmp(tmpstr, szLine, strlen(tmpstr)) == 0)
+                if (strncmp(tmpstr, (char *)szLine, strlen(tmpstr)) == 0)
                 {
                     //?�斤?��?絫itle
                     flag = 1;
@@ -415,7 +415,7 @@ char *GetIniSectionString(char *title, char *tmp_str, char *filename)
     {
         PRINTF("have no such file :%s\n",filename);
     }
-    szLine = malloc(4096);
+    szLine = (char *)malloc(4096);
     while (!feof(fp))
     {
         rtnval = fgetc(fp);
@@ -534,7 +534,7 @@ void vfReadBenchMarkValue_V6(char *title, char *filename, SensorTest_BenBenchmar
     int filesize = get_file_size(filename);
     char *strData;
 
-    strValue = calloc(filesize, sizeof(char));
+    strValue = (char *)calloc(filesize, sizeof(char));
     GetIniSectionString(title, strValue, filename);
     strData = strtok(strValue, ";");
     iCount = 0;
@@ -4035,7 +4035,7 @@ int viRunFWVerTest_6X()
         PRINTF("IC/INI Block number not match, IC:%d, INI:%d\n", ptl.block_num, ST.block_num);
         ST.block_num = ptl.block_num;
     }
-    upg.blk = calloc(ST.block_num , sizeof(struct BLOCK_DATA));
+    upg.blk = (struct BLOCK_DATA *)calloc(ST.block_num , sizeof(struct BLOCK_DATA));
     for(i = 0; i < 4; i++)
     {
         PRINTF("FW version check:0x%x,0x%x\n", FWVersion[i], ST.fw_ver[i]);
@@ -4494,7 +4494,7 @@ int init_sentest_array()
     for(i = 0; i < ptl.x_ch; i++)
         ST.dac_mc_n[i] = (short int*)calloc(ptl.y_ch, sizeof(short int));
     //FW check
-    ST.LogPath = calloc(1024, sizeof(char));
+    ST.LogPath = (char *)calloc(1024, sizeof(char));
 }
 int viRunSensorTest(int inFunctions)
 {
@@ -4521,7 +4521,7 @@ int viRunSensorTest_V3(int inFunctions)
     {
         init_sentest_array();
         //read profile set sensor 
-        if (strlen(IniPath) != 0)
+        if (strlen((char *)IniPath) != 0)
         {
             inFunctions = ReadST();
         }
@@ -4608,7 +4608,7 @@ int viRunSensorTest_V6(int inFunctions)
     {
         init_sentest_array();
         //read profile set sensor
-        if (strlen(IniPath) != 0)
+        if (strlen((char *)IniPath) != 0)
         {
             inFunctions = ReadST();
         }
@@ -4689,7 +4689,7 @@ int ReadST_V3()
     memset(buf, 0, sizeof(buf));
     memset(g_szConfigPath, 0, sizeof(g_szConfigPath));
     //PRINTF("=>Get sensor test criteria\n");
-    strcpy(g_szConfigPath, IniPath);
+    strcpy(g_szConfigPath, (char *)IniPath);
     if (strstr(IniPath, PROFILE_FORMAT_DAT) != NULL) {
         PRINTF("Profile file path %s\n", g_szConfigPath);
         PRINTF("ini path=%s\n",IniPath);
@@ -4852,28 +4852,29 @@ int ReadST_V3()
     }
     return inFunctions;
 }
+
 double GetVerfMapping(uint8_t *tmp) {
-    if(strcmp(tmp,"0.3") == 0 || strcmp(tmp," 0.3") == 0) {
+    if(strcmp((char *)tmp,"0.3") == 0 || strcmp((char *)tmp," 0.3") == 0) {
         PRINTF("0.3\n");
         ST.Short.vref_s = 0xB;
         return 0.3;
     }
-    else if(strcmp(tmp,"0.4") == 0 || strcmp(tmp," 0.4") == 0) {
+    else if(strcmp((char *)tmp,"0.4") == 0 || strcmp((char *)tmp," 0.4") == 0) {
         PRINTF("0.4\n");
         ST.Short.vref_s = 0xC;
         return 0.4;
     }
-    else if(strcmp(tmp,"0.5") == 0 || strcmp(tmp," 0.5") == 0) {
+    else if(strcmp((char *)tmp,"0.5") == 0 || strcmp((char *)tmp," 0.5") == 0) {
         PRINTF("0.5\n");
         ST.Short.vref_s = 0xD;
         return 0.5;
     }
-    else if(strcmp(tmp,"0.6") == 0 || strcmp(tmp," 0.6") == 0) {
+    else if(strcmp((char *)tmp,"0.6") == 0 || strcmp((char *)tmp," 0.6") == 0) {
         PRINTF("0.6\n");
         ST.Short.vref_s = 0xE;
         return 0.6;
     }
-    else if(strcmp(tmp,"0.7") == 0 || strcmp(tmp," 0.7") == 0) {
+    else if(strcmp((char *)tmp,"0.7") == 0 || strcmp((char *)tmp," 0.7") == 0) {
         PRINTF("0.7\n");
         ST.Short.vref_s = 0xF;
         return 0.7;
@@ -4891,12 +4892,12 @@ int ReadST_V6()
     char buf[INI_MAX_PATH], *tmp, section_fw[INI_MAX_PATH];
     int inFunctions = 0;
 
-    tmp = calloc(1024, sizeof(uint8_t));
+    tmp = (char *)calloc(1024, sizeof(uint8_t));
     //read ini test  Criteria
     memset(buf, 0, sizeof(buf));
     memset(g_szConfigPath, 0, sizeof(g_szConfigPath));
     //PRINTF("=>Get sensor test criteria\n");
-    strcpy(g_szConfigPath, IniPath);
+    strcpy(g_szConfigPath, (char *)IniPath);
     PRINTF("Profile file path %s\n", g_szConfigPath);
     PRINTF("ini path=%s\n",IniPath);
     //[System]
@@ -4953,7 +4954,7 @@ int ReadST_V6()
         printf("ST.block_num=%d\n", ST.block_num);
         if(ST.block_num > 0) {
             tmp = GetIniKeyString(section_fw, "Master_CRC", g_szConfigPath);
-            ST.master_crc = calloc(ST.block_num, sizeof(unsigned short));
+            ST.master_crc = (unsigned short *)calloc(ST.block_num, sizeof(unsigned short));
             char *Tbuf = strtok(tmp, ",");
             i = 0;
             while (Tbuf != NULL)
@@ -4967,7 +4968,7 @@ int ReadST_V6()
         ST.slave_num = GetIniKeyInt(section_fw, "Slave_number", g_szConfigPath);
         if(ST.slave_num > 0) {
             tmp = GetIniKeyString(section_fw, "Slave_CRC", g_szConfigPath);
-            ST.slave_crc = calloc(ST.slave_num, sizeof(unsigned short));
+            ST.slave_crc = (unsigned short *)calloc(ST.slave_num, sizeof(unsigned short));
             char *Sbuf = strtok(tmp, ",");
             i = 0;
             while (Sbuf != NULL)
@@ -4978,7 +4979,7 @@ int ReadST_V6()
             }
         }
         tmp = GetIniKeyString(section_fw, "Path", g_szConfigPath);
-        ST.hexfile = calloc(1024, sizeof(char));
+        ST.hexfile = (char *)calloc(1024, sizeof(char));
         strcpy(ST.hexfile,tmp);
     }
     //[Short_Test]
@@ -4993,7 +4994,7 @@ int ReadST_V6()
         ST.Short.dump2 = GetIniKeyInt("Short_Test", "Dump2", g_szConfigPath);
         ST.Short.posidleL = GetIniKeyInt("Short_Test", "Short_PostIdle_L", g_szConfigPath);
         ST.Short.posidleH = GetIniKeyInt("Short_Test", "Short_PostIdle_H", g_szConfigPath);
-        ST.Short.vref_v = GetVerfMapping(GetIniKeyString("Short_Test", "VrefL", g_szConfigPath));
+        ST.Short.vref_v = GetVerfMapping((uint8_t *)GetIniKeyString("Short_Test", "VrefL", g_szConfigPath));
         ST.Short.keyTx_thr = GetIniKeyInt("Short_Test", "KeyTX_Threshold", g_szConfigPath);
         ST.Short.keyRx_thr = GetIniKeyInt("Short_Test", "KeyRX_Threshold", g_szConfigPath);
     }

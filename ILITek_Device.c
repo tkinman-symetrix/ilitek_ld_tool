@@ -314,7 +314,7 @@ struct usb_dev_handle *open_usb_hid_device_with_pid()
         for(dev = bus->devices; dev; dev = dev->next)
         {
             if(((dev->descriptor.idVendor == ILITEK_VENDOR_ID) || (dev->descriptor.idVendor == OTHER_VENDOR_ID) || (dev->descriptor.idVendor ==OTHER_VID)) 
-            && ((dev->descriptor.idProduct == hex_2_dec(temp_ILITEK_PID, 4)) || dev->descriptor.idProduct == 0x0006))
+            && ((dev->descriptor.idProduct == hex_2_dec((char *)temp_ILITEK_PID, 4)) || dev->descriptor.idProduct == 0x0006))
             {
                 PRINTF("%s, ILITEK usb_hid device found, devnum=%u, 0x%04X:0x%04X\n", __func__, dev->devnum, dev->descriptor.idVendor, dev->descriptor.idProduct);
                 ILITEK_PID = dev->descriptor.idProduct;
@@ -577,7 +577,7 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
             w_report = REPORT_ID_4096_BYTE;
             wlen = BYTE_4K + 1 + 6;
         }
-        WriteBuff = calloc(wlen, sizeof(uint8_t));
+        WriteBuff = (uint8_t *)calloc(wlen, sizeof(uint8_t));
 
         if(WriteBuff == NULL) {
             PRINTF("WriteBuff: unable to allocate required memory\n");
@@ -603,7 +603,7 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
             r_report = REPORT_ID_4096_BYTE;
             rlen = BYTE_4K + 1 + 6;
         }
-        ReadBuff = calloc(rlen, sizeof(uint8_t));
+        ReadBuff = (uint8_t *)calloc(rlen, sizeof(uint8_t));
         if(ReadBuff == NULL) {
             free(WriteBuff);
             PRINTF("WriteBuff: unable to allocate required memory\n");
@@ -627,14 +627,14 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
         }
 		if (inConnectStyle==_ConnectStyle_USB_) {
 WRITE_AGAIN:
-		    if (writelen == 0 || usb_control_msg(hdev, 0x21, 0x09, w_report, 0, WriteBuff, wlen, 10000) > 0) //bl nk ap ok
+		    if (writelen == 0 || usb_control_msg(hdev, 0x21, 0x09, w_report, 0, (char *)WriteBuff, wlen, 10000) > 0) //bl nk ap ok
 		    {
 		        if (readlen > 0) {
 		            usleep(1000);
 		            if(r_report == REPORT_ID_64_BYTE)
 		            {
 AGAIN:
-	                    ret = usb_interrupt_read(hdev, ENDPOINT_IN, ReadBuff, 64, (inTimeOut+3000));
+	                    ret = usb_interrupt_read(hdev, ENDPOINT_IN, (char *)ReadBuff, 64, (inTimeOut+3000));
 	                    if(ret < 0)
 	                    {
 	                        #ifdef DEBUG_TRANSFER_DATA
@@ -655,7 +655,7 @@ AGAIN:
 	                }
 	                else
 	                {
-	                    ret = usb_control_msg(hdev, 0xA1, 0x01, r_report, 0, ReadBuff, rlen, 10000);
+	                    ret = usb_control_msg(hdev, 0xA1, 0x01, r_report, 0, (char *)ReadBuff, rlen, 10000);
 	                    if(ret < 0)
 	                    {
 	                        PRINTF("%s, read command fail\n", __func__);

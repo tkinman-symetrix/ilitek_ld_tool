@@ -154,11 +154,11 @@ int viRunFre_6X(char *argv[])
     ret = ModeCtrl_V6(ENTER_TEST_MODE, DISABLE_ENGINEER);
 
     mc_sine.len = (abs(mc_sine.end - mc_sine.start) / mc_sine.step) + 1;
-    mc_sine.band = calloc(mc_sine.len * count, sizeof(FREQUENCY_BAND_DATA));
+    mc_sine.band = (FREQUENCY_BAND_DATA *)calloc(mc_sine.len * count, sizeof(FREQUENCY_BAND_DATA));
     mc_swcap.len = (abs(mc_swcap.end - mc_swcap.start) / mc_swcap.step) + 1;
-    mc_swcap.band = calloc(mc_swcap.len * count, sizeof(FREQUENCY_BAND_DATA));
+    mc_swcap.band = (FREQUENCY_BAND_DATA *)calloc(mc_swcap.len * count, sizeof(FREQUENCY_BAND_DATA));
     sc_swcap.len = (abs(sc_swcap.end - sc_swcap.start) / sc_swcap.step) + 1;
-    sc_swcap.band = calloc(sc_swcap.len * count, sizeof(FREQUENCY_BAND_DATA));
+    sc_swcap.band = (FREQUENCY_BAND_DATA *)calloc(sc_swcap.len * count, sizeof(FREQUENCY_BAND_DATA));
     printf("MC Sine Start:%d End:%d Step=%d, data length:%d\n", mc_sine.start, mc_sine.end, mc_sine.step, mc_sine.len);
     printf("MC SWCap Start:%d End:%d Step=%d, data length:%d\n", mc_swcap.start, mc_swcap.end, mc_swcap.step, mc_swcap.len);
     printf("SC SWCap Start:%d End:%d Step=%d, data length:%d\n", sc_swcap.start, sc_swcap.end, sc_swcap.step, sc_swcap.len);

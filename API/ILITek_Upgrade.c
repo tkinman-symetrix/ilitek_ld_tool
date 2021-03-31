@@ -196,16 +196,16 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
         PRINTF("Get Panel information Failed!!!");
         return _FAIL;
     }
-    fd = open(filename, O_RDONLY);
+    fd = open((char *)filename, O_RDONLY);
     if (fd < 0)
     {
         PRINTF("%s, cannot open %s file\n", __func__, filename);
         return _FAIL;
     }
-    upg.hexfilesize = get_file_size(filename);
+    upg.hexfilesize = get_file_size((char *)filename);
     PRINTF("%s, hex file size, 0x%X\n", __func__, upg.hexfilesize);
     //allocate buffer for reading file
-    pbuf = malloc(upg.hexfilesize);
+    pbuf = (unsigned char *)malloc(upg.hexfilesize);
     if (pbuf == NULL)
     {
         close(fd);
@@ -221,7 +221,7 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
         PRINTF("%s, read failed, ret != readsize\n", __func__);
     }
     PRINTF("%s, read hex file to memoery, completed\n", __func__);
-    buffer = malloc(ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE);
+    buffer = (unsigned char *)malloc(ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE);
     if (buffer == NULL)
     {
         close(fd);
@@ -238,7 +238,7 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
     hex_file_convert(pbuf, buffer,upg.hexfilesize);
     if(upg.hex_info_flag == true)
     {
-        if(check_ictype(upg.hex_ic_type) < 0)
+        if(check_ictype((char *)upg.hex_ic_type) < 0)
         {
             PRINTF("IC:%x%x,Hex:%x%x\n",KernelVersion[1],KernelVersion[0],upg.hex_ic_type[1],upg.hex_ic_type[0]);
             PRINTF("Hex and IC MCU version is diff\n");
@@ -259,12 +259,12 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
     if (cFWVersion != NULL && (strlen(cFWVersion) >= 4))
     {
         str_to_array(cFWVersion, ucTempData, 8);
-        iUpdate = viCheckFWNeedUpgrade(ucTempData);
+        iUpdate = viCheckFWNeedUpgrade((char *)ucTempData);
     }
     else if(cFWVersion != NULL && upg.hex_info_flag)
     {
         PRINTF("%s, Support auto compare FW version\n", __func__);
-        iUpdate = viCheckFWNeedUpgrade(upg.hex_fw_ver);
+        iUpdate = viCheckFWNeedUpgrade((char *)upg.hex_fw_ver);
     }
 
 
@@ -363,7 +363,7 @@ void hex_mapping_convert(unsigned int addr,unsigned char *buffer)
         upg.blk_num = buffer[addr + HEX_FLASH_BLOCK_NUMMER_ADDRESS];
         printf("------------Hex Block information------------\n");
         PRINTF("Hex flash block number: %d\n", upg.blk_num);
-        upg.blk = calloc(upg.blk_num , sizeof(struct BLOCK_DATA));
+        upg.blk = (struct BLOCK_DATA *)calloc(upg.blk_num , sizeof(struct BLOCK_DATA));
         for(count = 0; count < upg.blk_num; count++)
         {
             start = addr + HEX_FLASH_BLOCK_INFO_ADDRESS + HEX_FLASH_BLOCK_INFO_SIZE * count;
@@ -392,9 +392,9 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize
     for (i = 0; i < hexfilesize;)
     {
         int offset;
-        len = hex_2_dec(&pbuf[i + 1], HEX_BYTE_CNT_LEN);
-        addr = hex_2_dec(&pbuf[i + 3], HEX_ADDR_LEN);
-        type = hex_2_dec(&pbuf[i + 7], HEX_RECORD_TYPE_LEN);
+        len = hex_2_dec((char *)&pbuf[i + 1], HEX_BYTE_CNT_LEN);
+        addr = hex_2_dec((char *)&pbuf[i + 3], HEX_ADDR_LEN);
+        type = hex_2_dec((char *)&pbuf[i + 7], HEX_RECORD_TYPE_LEN);
         //PRINTF("len = %u(0x%02X), addr = %u(0x%04X), type = %u\n", len, len, addr, addr, type);
         if (len < 0 || addr < 0 || type < 0)
         {
@@ -407,16 +407,16 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize
 
         if (type == HEX_TYPE_ELA)
         {
-            exaddr = hex_2_dec(&pbuf[i + HEX_DATA_POS_HEAD], (len * 2)) << 16;
+            exaddr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2)) << 16;
         }
         if (type == HEX_TYPE_ESA)
         {
-            exaddr = hex_2_dec(&pbuf[i + HEX_DATA_POS_HEAD], (len * 2)) << 4;
+            exaddr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2)) << 4;
         }
         addr = addr + exaddr;
         if (type == HEX_TYPE_ILI_MEM_MAP)
         {
-            hex_info_addr = hex_2_dec(&pbuf[i + HEX_DATA_POS_HEAD], (len * 2));
+            hex_info_addr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2));
             PRINTF("%s, hex_info_addr = 0x%x\n", __func__, hex_info_addr);
             upg.hex_info_flag = true;
         }
@@ -435,12 +435,12 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize
 
                 if (addr + (j - HEX_DATA_POS_HEAD) / 2 < upg.df_start_addr)
                 {
-                    upg.ap_check = upg.ap_check + hex_2_dec(&pbuf[i + j], 2);
+                    upg.ap_check = upg.ap_check + hex_2_dec((char *)&pbuf[i + j], 2);
 					//PRINTF("addr = 0x%04X, ap_check = 0x%06X, data = 0x%02X\n", addr + (j - 8)/2, upg.ap_check, hex_2_dec(&pbuf[i + j], 2));
                 }
                 else
                 {
-                    upg.df_check = upg.df_check + hex_2_dec(&pbuf[i + j], 2);
+                    upg.df_check = upg.df_check + hex_2_dec((char *)&pbuf[i + j], 2);
                     //PRINTF("addr = 0x%04X, df_check = 0x%06X, data = 0x%02X\n",addr + (j - 8)/2 , upg.df_check, hex_2_dec(&pbuf[i + j], 2));
                 }
             }
@@ -493,13 +493,13 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, int hexfilesize
             //fill data
             for (j = 0, k = 0; j < (len * 2); j += 2, k++)
             {
-                buffer[addr + k] = hex_2_dec(&pbuf[i + HEX_DATA_POS_HEAD + j], 2);
+                buffer[addr + k] = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD + j], 2);
                 //PRINTF("0x%02x", buffer[addr + k]);
             }
         }
         if (type == HEX_TYPE_ILI_SDA){
             upg.df_tag_exist = true;
-            upg.df_start_addr = hex_2_dec(&pbuf[i + HEX_DATA_POS_HEAD], (len * 2));
+            upg.df_start_addr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2));
             PRINTF("-----------Data Flash Start address:0x%x\n", upg.df_start_addr);
         }
         i += HEX_DATA_POS_HEAD + (len * 2) + HEX_CHKSUM_LEN + offset;
@@ -833,8 +833,7 @@ int Program_Slave_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
     uint16_t dae_crc = 0;
     bool update = false, blmode = false;
 
-
-    upg.ic = calloc(ptl.ic_num, sizeof(struct IC_DATA));
+    upg.ic = (struct IC_DATA *)calloc(ptl.ic_num, sizeof(struct IC_DATA));
     //check protocol
     if(ptl.ver < PROTOCOL_V6_0_0) {
         PRINTF("It is protocol not support\n");

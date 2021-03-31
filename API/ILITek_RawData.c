@@ -649,8 +649,8 @@ int viGetRawData_6X(unsigned int d_len)
     header = header + id_len;
     start = start + id_len;
     SetDataLength_V6(t_len);
-    p_s16Data = calloc(d_len, sizeof(uint16_t));
-    Rbuff = calloc(header + t_len, sizeof(uint8_t));
+    p_s16Data = (uint16_t *)calloc(d_len, sizeof(uint16_t));
+    Rbuff = (uint8_t *)calloc(header + t_len, sizeof(uint8_t));
     if(d_len*2 + header < t_len && inConnectStyle ==_ConnectStyle_I2C_)
         t_len = d_len*2;
     do {
