@@ -51,7 +51,7 @@ typedef struct _SensorTest_Short_
     int8_t posidleH;
     int keyTx_thr;
     int keyRx_thr;
-    SensorTest_Node *key_daltc; 
+    SensorTest_Node *key_daltc;
 }SensorTest_Short;
 
 typedef struct _SensorTest_BenBenchmark_Ini_
@@ -59,7 +59,7 @@ typedef struct _SensorTest_BenBenchmark_Ini_
     int data;
     int max;
     int min;
-    int type; 
+    int type;
 }SensorTest_BenBenchmark_Ini;
 
 typedef struct _SensorTest_BenBenchmark_Node_
@@ -263,7 +263,7 @@ extern void InitialSensorTestV3Parameter();
 
 int viRunSensorTest(int inFunctions);
 int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode);
-char *GetIniKeyString(char *title, char *key, char *filename);
+char *GetIniKeyString(const char *title, const char *key, char *filename);
 int init_sentest_array();
 int ReadST_V6();
 int ReadST_V3();

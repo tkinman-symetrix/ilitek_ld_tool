@@ -402,7 +402,8 @@ void vfRunUSBDebug_3X()
                     while(isStop != 1)
                     {
                         error = read(fd, buf, bufferlen);
-
+			if (error < 0)
+			    return;
                         //for(bufferindex = 0; bufferindex < 63; bufferindex++)
                         //{
                         //	PRINTF("buf[%d]=%d\n", bufferindex, buf[bufferindex]);

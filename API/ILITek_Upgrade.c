@@ -287,7 +287,7 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
         }
     }
     gettimeofday(&tv , &tz);
-    printf("viRunFiremwareUpgrade end time:%ld.%ld\n", tv.tv_sec - basetime, tv.tv_usec); 
+    printf("viRunFiremwareUpgrade end time:%ld.%ld\n", tv.tv_sec - basetime, tv.tv_usec);
     return ret;
 }
 
@@ -383,7 +383,7 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 {
     unsigned int exaddr = 0;
     unsigned int i = 0, j = 0, k = 0;
-    unsigned int start_addr = 0xFFFF, hex_info_addr = 0, end_addr = 0xFFFFFF;
+    unsigned int start_addr = 0xFFFF, hex_info_addr = 0;
     unsigned int count = 0;
     bool read_mapping = false;
     unsigned int len = 0, addr = 0, type = 0;
@@ -455,7 +455,6 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
         if (type == HEX_TYPE_DATA)
         {
             //for bl protocol 1.4+, ap_start_addr and ap_end_addr
-            end_addr = addr + len;
             if (addr < start_addr)
             {
                 start_addr = addr;
@@ -505,7 +504,6 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 
     if(inProtocolStyle == _Protocol_V6_) {
         printf("------------Daemon Block information------------\n");
-        //for(i = 0; i <= end_addr; i++) {
             for(count = 0; count < upg.blk_num; count++) {
                 //if(upg.blk[count].end)
                 printf("Block %d, start=0x%x end=0x%x\n", count, upg.blk[count].start, upg.blk[count].end);
@@ -519,7 +517,6 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
                     // printf("%02X", buffer[i]);
                 }
             }
-       // }
     } else if(inProtocolStyle == _Protocol_V3_) {
         PRINTF("%s, ap_start_address:0x%06X, ap_end_address:0x%06X, ap_check = 0x%06X\n",
         __func__, upg.ap_start_addr, upg.ap_end_addr, upg.ap_check);
@@ -624,27 +621,24 @@ int UpgradeFirmware_Pro1_6(unsigned char *buffer)
         ret = EraseDataFlash();
     }
     PRINTF("%s,Firmware Upgrade Success\n", __func__);
-    return _SUCCESS;
+    return (ret < 0) ? _FAIL : _SUCCESS;
 }
 
 int UpgradeFirmware_Pro1_7(unsigned char *buffer)
 {
-    int ret = _SUCCESS;
     unsigned int get_Check;
-    unsigned int i = 0, j = 0, k = 0;
+    unsigned int i = 0, k = 0;
 
     upg.df_check = CheckFWCRC((upg.df_start_addr + 2), upg.df_end_addr, buffer);
 
     PRINTF("%s,df_Check=0x%06X\n", __func__, upg.df_check);
-    ret = WriteDataFlashKey(upg.df_end_addr, upg.df_check);
+    WriteDataFlashKey(upg.df_end_addr, upg.df_check);
     usleep(200000);
     if (CheckBusy(100, 10, NO_NEED) < 0)
     {
         PRINTF("%s,WriteDataFlashKey: CheckBusy Failed\n", __func__);
         return _FAIL;
     }
-
-    j = 0;
 
     for (i = upg.df_start_addr; i < upg.df_end_addr; i += 32) //i += update_len - 1)
     {
@@ -663,7 +657,7 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
                 //	PRINTF("buf[%u] = %x, ", (5 + k), buff[5 + k]);
             }
         }
-       ret = TransferData(buff, 33, NULL, 0, 1000);
+       TransferData(buff, 33, NULL, 0, 1000);
         usleep(5000);
         if (CheckBusy(10, 10, NO_NEED) < 0)
         {
@@ -680,7 +674,7 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
     if (upg.df_end_addr > upg.df_start_addr)
     {
         buff[0] = ILITEK_TP_GET_AP_CRC;
-        ret = TransferData(buff, 1, NULL, 0, 1000);
+        TransferData(buff, 1, NULL, 0, 1000);
 
         if (CheckBusy(10, 10, NO_NEED) < 0)
         {
@@ -702,7 +696,7 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
     }
     else
 	    upg.ap_check = CheckFWCRC(upg.ap_start_addr, upg.ap_end_addr - 2, buffer);
-    ret = WriteAPCodeKey(upg.ap_end_addr, upg.ap_check);
+    WriteAPCodeKey(upg.ap_end_addr, upg.ap_check);
 
     PRINTF("%s, ap_start_addr=0x%x,ap_end_addr=0x%06X,ap_check=0x%06X\n", __func__, upg.ap_start_addr, upg.ap_end_addr, upg.ap_check);
     usleep(20000);
@@ -719,7 +713,7 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
         {
             buff[1 + k] = buffer[i + k];
         }
-        ret = TransferData(buff, 33, NULL, 0, 1000);
+        TransferData(buff, 33, NULL, 0, 1000);
         usleep(5000);
         if (CheckBusy(10, 10, NO_NEED) < 0)
         {
@@ -737,7 +731,7 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
     if (upg.ap_end_addr > upg.ap_start_addr)
     {
         buff[0] = 0xC7;
-        ret = TransferData(buff, 1, NULL, 0, 1000);
+        TransferData(buff, 1, NULL, 0, 1000);
         if (CheckBusy(10, 10,NO_NEED) < 0)
         {
             PRINTF("%s, WriteAPDatas Last: CheckBusy Failed\n", __func__);
@@ -761,24 +755,23 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
 
     if (upg.df_tag_exist == false)
     {
-        ret = EraseDataFlash();
+	EraseDataFlash();
     }
     else
     {
-        ret = software_reset();
+        software_reset();
     }
     PRINTF("%s,Firmware Upgrade Success\n", __func__);
     return _SUCCESS;
 }
 
 int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
-    int ret = _SUCCESS;
     uint16_t dae_crc = 0, ic_crc = 0;
     uint8_t Rbuff[3] = {0};
 	unsigned int k, i;
 
     dae_crc = CheckFWCRC(upg.blk[block].start, upg.blk[block].end - 1, buffer);
-    ret = WriteFlashEnable_BL1_8(upg.blk[block].start, upg.blk[block].end);
+    WriteFlashEnable_BL1_8(upg.blk[block].start, upg.blk[block].end);
     for (i = upg.blk[block].start; i < upg.blk[block].end; i += len) //i += update_len - 1)
     {
         buff[0] = (unsigned char)ILITEK_TP_CMD_WRITE_DATA;
@@ -788,7 +781,7 @@ int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
         }
         //i2c use check busy, usb use ic ack
         if (inConnectStyle == _ConnectStyle_I2C_) {
-            ret = TransferData(buff, len + 1, NULL, 0, 1000);
+            TransferData(buff, len + 1, NULL, 0, 1000);
             usleep(5000);
             if (CheckBusy(40, 50, SYSTEM_BUSY) < 0)
             {

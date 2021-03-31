@@ -168,7 +168,7 @@ char *GetIniKeyString(const char *title, const char *key, char *filename)
     bool MultiByteEnable = false;
     bool FindDataByte = false;
     int buteCount = 0;
-    ssize_t error;
+    size_t ret;
 
     szLine = (unsigned char *)calloc(8192, sizeof(unsigned char));
     if ((fp = fopen(filename, ("rb"))) == NULL)
@@ -176,22 +176,18 @@ char *GetIniKeyString(const char *title, const char *key, char *filename)
         PRINTF("have no such file :%s\n", filename);
         return NULL;
     }
-    error = fread(&(isUni), 1, 2, fp);
-    if(isUni == (unsigned short)0xBBEF){
-        //PRINTF("%s,%d,UTF-8 have Bom\n", __func__, __LINE__);
-        //? ç‚ºbom?¯ä??‹byteï¼Œæ?ä»¥è?å¤šè?ä¸€?‹byte
+    ret = fread(&(isUni), 1, 2, fp);
+    if (ret && isUni == (unsigned short)0xBBEF) {
         rtnval = fgetc(fp);
-    }
-    else if (isUni == (unsigned short)0xFFFE || isUni == (unsigned short)0xFEFF || isUni == (unsigned short)0xFEBB) {
+    } else if (ret && (isUni == (unsigned short)0xFFFE ||
+	       isUni == (unsigned short)0xFEFF || isUni == (unsigned short)0xFEBB)) {
         MultiByteEnable = true;
-        //PRINTF("%s,%d, Format is Unicode\n", __func__, __LINE__);
-    }
-    else {
-        //PRINTF("%s,%d, Format is UTF-8\n", __func__, __LINE__);
+    } else {
         szLine[1] = isUni >> 8;
         szLine[0] = isUni;
         i = 2;
     }
+
     while (!feof(fp))
     {
         rtnval = fgetc(fp);
@@ -225,7 +221,7 @@ char *GetIniKeyString(const char *title, const char *key, char *filename)
 #endif
             szLine[--i] = '\0';
             i = 0;
-            tmp = strchr(szLine, '=');
+            tmp = strchr((char *)szLine, (int)'=');
             if ((tmp != NULL) && (flag == 1))
             {
                 splitResult = strtok((char *)szLine,"=");
@@ -325,35 +321,31 @@ bool check_ini_section(const char *title, char *filename)
     char szLine[1024];
     int rtnval;
     int i = 0;
-    char *tmp;
     bool status = false;
     unsigned short isUni;
     bool MultiByteEnable = false;
     bool FindDataByte = false;
     int buteCount = 0;
-    ssize_t error;
+    size_t ret;
 
     if ((fp = fopen(filename, ("rb"))) == NULL)
     {
         PRINTF("have no such file :%s\n",filename);
-        return "";
+        return false;
     }
-    error = fread(&(isUni), 1, 2, fp);
-    if(isUni == (unsigned short)0xBBEF){
-        //PRINTF("%s,%d,UTF-8 have Bom\n", __func__, __LINE__);
-        //? ç‚ºbom?¯ä??‹byteï¼Œæ?ä»¥è?å¤šè?ä¸€?‹byte
+    ret = fread(&(isUni), 1, 2, fp);
+
+    if (ret && isUni == (unsigned short)0xBBEF) {
         rtnval = fgetc(fp);
-    }
-    else if (isUni == (unsigned short)0xFFFE || isUni == (unsigned short)0xFEFF || isUni == (unsigned short)0xFEBB) {
+    } else if (ret && (isUni == (unsigned short)0xFFFE ||
+             isUni == (unsigned short)0xFEFF || isUni == (unsigned short)0xFEBB)) {
         MultiByteEnable = true;
-        //PRINTF("%s,%d, Format is Unicode\n", __func__, __LINE__);
-    }
-    else {
-        //PRINTF("%s,%d, Format is UTF-8\n", __func__, __LINE__);
+    } else {
         szLine[1] = isUni >> 8;
         szLine[0] = isUni;
         i = 2;
     }
+
     while (!feof(fp))
     {
         rtnval = fgetc(fp);
@@ -387,7 +379,7 @@ bool check_ini_section(const char *title, char *filename)
 #endif
             szLine[--i] = '\0';
             i = 0;
-            tmp = strchr(szLine, '=');
+            //tmp = strchr(szLine, '=');
             {
                 strcpy(tmpstr, "[");
                 strcat(tmpstr, title);
@@ -404,7 +396,7 @@ bool check_ini_section(const char *title, char *filename)
     return status;
 }
 
-char *GetIniSectionString(char *title, char *tmp_str, char *filename)
+char *GetIniSectionString(const char *title, char *tmp_str, char *filename)
 {
     FILE *fp;
     //char szLine[1024];
@@ -2309,8 +2301,7 @@ int viRunOpenTest_3X_NewFlow()
 {
 	int ret = _SUCCESS;
 	int inDeltaValue1;
-	int inDiffAvg,inX_DiffAvg,inY_DiffAvg;
-	//int inDiffThreshold,inX_DiffThreshold,inY_DiffThreshold,
+	int inDiffAvg;
 	int inIndexCounts;
 	int inSum;
 	int inTempCheckValue;
@@ -2430,7 +2421,7 @@ int viRunOpenTest_3X_NewFlow()
 				 inIndexCounts++;
 			}
 		}
-		inX_DiffAvg = (int)(1.0 * inSum / inIndexCounts);
+		//inX_DiffAvg = (int)(1.0 * inSum / inIndexCounts);
 
 		//inX_DiffThreshold = (int)(inDiffAvg * ST.Open_XDiffThreshold * 0.01);
 		//-------Caculate Y_DiffAvg 20V - 6V ---------------------------
@@ -2445,7 +2436,7 @@ int viRunOpenTest_3X_NewFlow()
 				 inIndexCounts++;
 			}
 		}
-		inY_DiffAvg = (int)(1.0 * inSum / inIndexCounts);
+		//inY_DiffAvg = (int)(1.0 * inSum / inIndexCounts);
 		//inY_DiffThreshold = (int)(inDiffAvg * ST.Open_YDiffThreshold * 0.01);
 
 		//Check DiffThreshold   Threshold0--------------------------------------
@@ -4124,7 +4115,7 @@ int viRunDACTest()
 
 void vfPrintSensorTestResult_V3(int inFunctions)
 {
-	int ret;
+	int error;
     char timebuf[60];
 	char result_file_name[256] = {0};
 	FILE *result_file;
@@ -4181,7 +4172,6 @@ void vfPrintSensorTestResult_V3(int inFunctions)
 
     }
 
-
 	strftime(timebuf,60,"%Y%m%d_%I%M%S",timeinfo);
 	sprintf(fileName,"%s.csv",timebuf);
 	strcat(result_file_name, fileName);
@@ -4212,17 +4202,19 @@ void vfPrintSensorTestResult_V3(int inFunctions)
         vfSaveAllNodeTestLog(result_file);
     if ((inFunctions & UNIFORMITY_TEST) == UNIFORMITY_TEST)
         vfSaveUniformityTestLog(result_file);
-	ret = remove(fileName);
+	error = remove(fileName);
 	fclose(result_file);
-
+	if (error < 0)
+	    return;
 }
+
 void vfPrintSensorTestResult_V6(int inFunctions)
 {
-	int ret;
-	char tmp[2] = {"."};
+    int error;
+    char tmp[2] = {"."};
     char timebuf[60],logst[60];
-	char result_file_name[256] = {0};
-	FILE *result_file;
+    char result_file_name[256] = {0};
+    FILE *result_file;
 
     if ((ucSensorTestResult & MICROSHORT_TEST) == MICROSHORT_TEST)
         PRINTF("SensorTest: Short Test NG!\n");
@@ -4309,9 +4301,10 @@ void vfPrintSensorTestResult_V6(int inFunctions)
         vfSaveUniformityTestLog_V6(result_file);
     if ((inFunctions & MIRCO_OPEN_TEST) == MIRCO_OPEN_TEST)
         vfSaveMircoOpenTestLog_V6(result_file);
-	ret = remove(fileName);
+	error = remove(fileName);
 	fclose(result_file);
-
+	if (error < 0)
+	    return;
 }
 
 void vfPrintSensorTestResult(int inFunctions)
@@ -4700,7 +4693,7 @@ int ReadST_V3()
     memset(g_szConfigPath, 0, sizeof(g_szConfigPath));
     //PRINTF("=>Get sensor test criteria\n");
     strcpy(g_szConfigPath, (char *)IniPath);
-    if (strstr(IniPath, PROFILE_FORMAT_DAT) != NULL) {
+    if (strstr((char *)IniPath, PROFILE_FORMAT_DAT) != NULL) {
         PRINTF("Profile file path %s\n", g_szConfigPath);
         PRINTF("ini path=%s\n",IniPath);
 
@@ -4847,7 +4840,7 @@ int ReadST_V3()
         PRINTF("NewVerFlag State:%d\n",NewVerFlag);
         PRINTF("inFunctions State:%d\n",inFunctions);
     }
-    else if (strstr(IniPath, PROFILE_FORMAT_INI) != NULL) {
+    else if (strstr((char *)IniPath, PROFILE_FORMAT_INI) != NULL) {
         inFunctions = ReadST_V6();
         //Because profile ini format Uniformity test is allnode test.
         if((inFunctions & UNIFORMITY_TEST) == UNIFORMITY_TEST) {

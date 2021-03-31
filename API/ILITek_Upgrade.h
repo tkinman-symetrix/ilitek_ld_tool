@@ -47,7 +47,7 @@ struct BLOCK_DATA {
     unsigned int end;
     unsigned short ic_crc;
     unsigned short dae_crc;
-    bool chk_crc;               //false: ic and daemon are different. 
+    bool chk_crc;               //false: ic and daemon are different.
 };
 
 struct UPGRADE_DATA {
@@ -83,6 +83,6 @@ int FiremwareUpgrade(unsigned char *filename);
 int UpgradeFirmware_Pro1_8(unsigned char *filename);
 int UpgradeFirmware_Pro1_7(unsigned char *filename);
 int UpgradeFirmware_Pro1_6(unsigned char *filename);
-int hex_file_convert();
+int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int hexfilesize);
 #endif
 
