@@ -94,7 +94,7 @@ int PanelInfor_V3()
     ptl.y_max = ((unsigned int)Rbuff[3]) * 256 + Rbuff[2];
     ptl.x_ch = Rbuff[4];
     ptl.y_ch = Rbuff[5];
-    if (inConnectStyle == _ConnectStyle_I2C_) 
+    if (inConnectStyle == _ConnectStyle_I2C_)
         ptl.key_num = Rbuff[8];
     PRINTF("%s, max_x=%u, max_y=%u, xch=%u, ych=%u, Key Number:%u, ret=%u\n", __func__, ptl.x_max, ptl.y_max, ptl.x_ch, ptl.y_ch, ptl.key_num, ret);
     if (ptl.key_num > 0) {
@@ -321,7 +321,7 @@ int ExitTestMode()
 
 int ChangeTOAP()
 {
-    int ret = 0; 
+    int ret = 0;
     uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
     Wbuff[0]=(uint8_t)ILITEK_TP_CMD_SET_AP_MODE;
@@ -425,12 +425,11 @@ int EraseDataFlash()
 }
 
 int CheckBusy(int count, int delay, int type) {
-    if (inProtocolStyle == _Protocol_V3_) {
+    if (inProtocolStyle == _Protocol_V3_)
         return CheckBusy_3X(count, delay);
-    }
-    else if (inProtocolStyle == _Protocol_V6_) {
+    else if (inProtocolStyle == _Protocol_V6_)
         return CheckBusy_6X(count, delay, type);
-    }
+    return _FAIL;
 }
 
 int CheckBusy_3X(int count, int delay)

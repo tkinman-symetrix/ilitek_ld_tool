@@ -275,7 +275,7 @@ int viRunCDCType_6X(const char *type, int inFrames) {
     int report[300][300];
     int reportkey[3][50]; //Lego support max key number is 50, data:50 self x:50 self y:1
     int max = 0, min = 0xFFFF;
-    
+
     PRINTF("Type:%s\n", type);
     if(strcmp(type, "DAC_P") == 0) {
         mctype = TEST_MODE_V6_MC_DAC_P;
@@ -360,7 +360,7 @@ int viRunCDCType_6X(const char *type, int inFrames) {
             if(ret < 0)
             {
                 PRINTF("Error! Init RawData Failed!\n");
-            }  
+            }
 
             d_len = (ptl.x_ch + ptl.y_ch);
             ret = viGetRawData_6X(d_len);
@@ -390,7 +390,7 @@ int viRunCDCType_6X(const char *type, int inFrames) {
                 if(ret < 0)
                 {
                     PRINTF("Error! Init RawData Failed!\n");
-                }  
+                }
                 d_len = ptl.key_num;
                 ret = viGetRawData_6X(d_len);
                 if(ret < 0)
@@ -411,8 +411,8 @@ int viRunCDCType_6X(const char *type, int inFrames) {
                 if(ret < 0)
                 {
                     PRINTF("Error! Init RawData Failed!\n");
-                }  
-                d_len = ptl.key_num + 1;//add 1 is self y channel 
+                }
+                d_len = ptl.key_num + 1;//add 1 is self y channel
                 ret = viGetRawData_6X(d_len);
                 if(ret < 0)
                 {
@@ -682,7 +682,7 @@ int viGetRawData_6X(unsigned int d_len)
             printf("FW get lenght error\n");
             printf("0x%x 0x%x 0x%x 0x%x\n",Rbuff[1+id_len], Rbuff[2+id_len], Rbuff[3+id_len], Rbuff[4+id_len]);
             printf("inGettedCounts =%d,d_len=%d,inNeedCounts=%d\n", inGettedCounts, d_len, inNeedCounts);
-            break; 
+            break;
         }
         //printf("1 inGettedCounts =%d,d_len=%d\n", inGettedCounts, d_len);
         for (uiIndex = start; uiIndex < uiReadCounts - 1; uiIndex += 2, inGettedCounts++)
@@ -815,7 +815,7 @@ int viCreateCDCReportFile(const char *type)
         strcpy(cdc_type, "TEST_MODE_RAW_NBK");
     } else if(strcmp(type, "Raw") == 0) {
         strcpy(cdc_type, "TEST_MODE_RAW_BK");
-    } 
+    }
     else if(strcmp(type, "BG") == 0) {
         if(inProtocolStyle == _Protocol_V6_)
             strcpy(cdc_type, "TEST_MODE_BG_BK");
@@ -894,6 +894,8 @@ int viWriteCDCReport(int count, int report[][300], int max, int min, int report_
         }
         fprintf(result_file, "\n");
     }
+
+    return 0;
 }
 
 int viGetCDCData_6X(unsigned char type, unsigned int len) {

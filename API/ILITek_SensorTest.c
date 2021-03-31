@@ -288,7 +288,7 @@ void check_use_default_set(void) {
         ST.Uniformity.Win2_FailCount =_SensorTest_Uniformity_Win2_FailCount_V6_;
     if(ST.Uniformity.Up_FailCount < 0)
         ST.Uniformity.Up_FailCount = _SensorTest_Uniformity_RawData_Tolerance;
-    
+
     //open
     if(ST.Open_Threshold < 0)
         ST.Open_Threshold = _SensorTest_Open_Threshold_V6_;
@@ -411,7 +411,7 @@ char *GetIniSectionString(char *title, char *tmp_str, char *filename)
     int i = 0;
     int flag = 0;
     char *splitResult;
-    
+
     if ((fp = fopen(filename, ("r"))) == NULL)
     {
         PRINTF("have no such file :%s\n",filename);
@@ -424,7 +424,7 @@ char *GetIniSectionString(char *title, char *tmp_str, char *filename)
         if(szLine[0] == 0xEF && szLine[1] == 0xBB && szLine[2] == 0xBF){
             //PRINTF("%s,%d,UTF-8 have Bom\n", __func__, __LINE__);
             i = 0;
-        }    
+        }
         if (rtnval == '\n')
         {
 #ifndef WIN32
@@ -613,7 +613,7 @@ void vfSaveSelfTestLog(FILE *fp)
     ST.Self_Minimum = GetIniKeyInt("TestItem", "SelfCapTest_Minimum", g_szConfigPath);
     ST.Self_P2P = GetIniKeyInt("TestItem", "SelfCapTest_P2P", g_szConfigPath);
     ST.Self_P2P_Edge = GetIniKeyInt("TestItem", "SelfCapTest_P2P_Edge", g_szConfigPath);
-    ST.Self_Frame_Count = GetIniKeyInt("TestItem", "SelfCapTest_Frame", g_szConfigPath);    
+    ST.Self_Frame_Count = GetIniKeyInt("TestItem", "SelfCapTest_Frame", g_szConfigPath);
     fprintf(fp, "   Maximum_______________,%d\n", ST.Self_Maximum);
     fprintf(fp, "   Minimum_______________,%d\n", ST.Self_Minimum);
     fprintf(fp, "   P2P___________________,%d\n", ST.Self_P2P);
@@ -649,7 +649,7 @@ void vfSaveSelfTestLog(FILE *fp)
 
     }
     fprintf(fp, "\n");
-    
+
 }
 
 void vfSaveShortTestLog_V3(FILE *fp)
@@ -657,7 +657,7 @@ void vfSaveShortTestLog_V3(FILE *fp)
     unsigned char ucloopCh_X;
     unsigned char ucloopCh_Y;
     int key_ych = 0;
-    
+
     if ((ucSensorTestResult & MICROSHORT_TEST) == MICROSHORT_TEST)
         fprintf(fp, "[MicroShort_Test]        ,NG,\n");
     else
@@ -793,13 +793,13 @@ void vfSaveOpenTestLog_V6(FILE *fp)
 
     fprintf(fp, "   Min_Threshold              ,%d\n", ST.Open_Threshold);
 
-    fprintf(fp, "   TX_Average_Diff_Gap        ,%d\n", ST.Open_TX_Aver_Diff); 
+    fprintf(fp, "   TX_Average_Diff_Gap        ,%d\n", ST.Open_TX_Aver_Diff);
 
-    fprintf(fp, "   RX_Diff_Gap                ,%d\n", ST.Open_RX_Delta_Threshold); 
+    fprintf(fp, "   RX_Diff_Gap                ,%d\n", ST.Open_RX_Delta_Threshold);
 
-    fprintf(fp, "   RX_Diff_Gap_Tolerance      ,%d\n", ST.Open_RX_Continue_Fail_Tolerance); 
+    fprintf(fp, "   RX_Diff_Gap_Tolerance      ,%d\n", ST.Open_RX_Continue_Fail_Tolerance);
 
-    fprintf(fp, "   Key_Threshold      ,%d\n", ST.Open.key_thr); 
+    fprintf(fp, "   Key_Threshold      ,%d\n", ST.Open.key_thr);
 
     fprintf(fp, "\n      Normal        ,");
 
@@ -880,9 +880,9 @@ void vfSaveMircoOpenTestLog_V6(FILE *fp)
     fprintf(fp, "\n      (Spec.)                    ,\n");
     fprintf(fp, "      Frame_Count                ,%d\n", ST.MOpen.FrameCount);
     fprintf(fp, "      TX_Avg_Delta_Threshold     ,%d\n", ST.MOpen.TxAvgThr);
-    fprintf(fp, "      RX_Delta_Threshold         ,%d\n", ST.MOpen.RxDiffThr); 
+    fprintf(fp, "      RX_Delta_Threshold         ,%d\n", ST.MOpen.RxDiffThr);
     fprintf(fp, "      RX_Delta_Threshold_Tolerance,%d\n", ST.MOpen.RxToles);
-    
+
     if(ST.MOpen.RxDeltaEn == ENABLE_TEST) {
         fprintf(fp, "\n      RX_Delta      ,");
         for (ucloopCh_X = 1; ucloopCh_X < ptl.x_ch; ucloopCh_X++)
@@ -913,7 +913,7 @@ void vfSaveMircoOpenTestLog_V6(FILE *fp)
                 fprintf(fp, "      D_%03d           ,*%5d ,\n", ucloopCh_Y+1, ST.MOpen.tx_avg[0][ucloopCh_Y].raw.data);
             else
                 fprintf(fp, "      D_%03d           ,%6d ,\n", ucloopCh_Y+1, ST.MOpen.tx_avg[0][ucloopCh_Y].raw.data);
-        } 
+        }
     }
 
     fprintf(fp, "\n      Frame_1       ,");
@@ -1083,7 +1083,7 @@ void vfSaveUniformityTestLog_V6(FILE *fp)
                         fprintf(fp, "*%6d,", ST.v6_unifor_win2[loopCh_X][loopCh_Y].data);
                     else
                         fprintf(fp, "%7d,", ST.v6_unifor_win2[loopCh_X][loopCh_Y].data);
-            
+
                 }
                 fprintf(fp, "\n");
             }
@@ -1180,7 +1180,7 @@ void vfSaveUniformityTestLog_V6(FILE *fp)
                     fprintf(fp, "*%6d,", ST.v6_unifor_win2[loopCh_X][loopCh_Y].data);
                 else
                     fprintf(fp, "%7d,", ST.v6_unifor_win2[loopCh_X][loopCh_Y].data);
-        
+
             }
             fprintf(fp, "\n");
         }
@@ -1368,7 +1368,7 @@ void vfSaveUniformityTestLog(FILE *fp)
         for (ucloopCh_X = 0; ucloopCh_X < ptl.x_ch; ucloopCh_X++)
         {
             fprintf(fp, "%5d   ,", ST.BenchMark.iUniformityBenchMark[ucloopCh_X][ucloopCh_Y]);
-    
+
         }
         fprintf(fp, "\n");
 
@@ -1393,7 +1393,7 @@ void vfSaveUniformityTestLog(FILE *fp)
         for (ucloopCh_X = 0; ucloopCh_X < ptl.x_ch; ucloopCh_X++)
         {
             fprintf(fp, "%5d   ,", ST.unifor_daltc[ucloopCh_X][ucloopCh_Y]);
-    
+
         }
         fprintf(fp, "\n");
 
@@ -1590,7 +1590,7 @@ void vfSaveOpenTestLog_V3(FILE *fp)
     fprintf(fp, "   TX_Average_Diff_Gap_,%d\n", ST.Open_TX_Aver_Diff);
 
     fprintf(fp, "   Open_Data____,");
-    if (ptl.key_mode == ILITEK_HW_KEY_MODE) 
+    if (ptl.key_mode == ILITEK_HW_KEY_MODE)
         fprintf(fp, "   Key_Threshold,%d\n", ST.Open.key_thr);
 
     for (ucloopCh_X = 0; ucloopCh_X < ptl.x_ch; ucloopCh_X++)
@@ -2452,7 +2452,7 @@ int viRunOpenTest_3X_NewFlow()
 			for (ucloopCh_Y = 0;ucloopCh_Y < ptl.y_ch;ucloopCh_Y++)
 			{
 				 inDeltaValue1 = (uiTestDatas[ucloopCh_X][ucloopCh_Y] - uiTestDatas_1[ucloopCh_X][ucloopCh_Y]);
-				//20190314 add by tigers 
+				//20190314 add by tigers
 				ST.open_20_6V_daltc[ucloopCh_X][ucloopCh_Y] = inDeltaValue1;
 				//20190314 end
 				 //if(inDeltaValue1 < (int)(inDiffAvg * ST.Open_DiffGolden * 0.01))
@@ -3702,27 +3702,28 @@ int viRunOpenTest_6X()
 
 int viRunMircoOpenTest_3X()
 {
-
+    return 0;
 }
+
 int viRunMircoOpenTest_6X()
 {
-	int ret = _SUCCESS;
-	unsigned int CHY = 0, CHX = 0;
-	int trans_num = 0;
+    int ret = _SUCCESS;
+    unsigned int CHY = 0, CHX = 0;
+    int trans_num = 0;
     int TxAverageStatus = _SUCCESS, RxDiffStatus = _SUCCESS;
 
-	PRINTF("\nMirco Open Test Criteria:\n");
+    PRINTF("\nMirco Open Test Criteria:\n");
     trans_num = ptl.x_ch * ptl.y_ch;
     PRINTF("RX_Delta_En=%s\n", ST.MOpen.RxDeltaEn ? "True" : "False");
     PRINTF("TX_Avg_Delta_En=%s\n", ST.MOpen.TxAvgEn ? "True" : "False");
     PRINTF("TX_Avg_Delta_Threshold = %d\n",ST.MOpen.TxAvgThr);
     PRINTF("TX_Avg_Delta_Threshold_AvoidCorner=%s\n", ST.MOpen.TxAvgCorner ? "True" : "False");
-    PRINTF("RX_Delta_Threshold_Tolerance = %d\n",ST.MOpen.RxToles);  
-    
+    PRINTF("RX_Delta_Threshold_Tolerance = %d\n",ST.MOpen.RxToles);
+
 
     if(!ST.Open_test) {
         ModeCtrl_V6(ENTER_TEST_MODE, DISABLE_ENGINEER);
-    
+
         if (viInitRawData_6X(TEST_MODE_V6_OPEN, 10) != _FAIL)
         {
             if (viGetRawData_6X(trans_num) != _FAIL)
@@ -3748,11 +3749,11 @@ int viRunMircoOpenTest_6X()
     PRINTF("  Delta,(Avg_D)\n");
     for (CHY = 1; CHY < ptl.y_ch; CHY++)
     {
-        if(ST.MOpen.tx_avg[0][CHY].raw.status == NODE_FAIL) 
+        if(ST.MOpen.tx_avg[0][CHY].raw.status == NODE_FAIL)
             PRINTF("Y_%3dCH,*%5d\n", CHY, ST.MOpen.tx_avg[0][CHY - 1].raw.data);
         else
             PRINTF("Y_%3dCH,%6d\n", CHY, ST.MOpen.tx_avg[0][CHY - 1].raw.data);
-    }    
+    }
     PRINTF("\nMirco Open Datas: \n       ");
     for (CHX = 0; CHX < ptl.x_ch; CHX++) {
         PRINTF(" %3dCH,", CHX);
@@ -3772,7 +3773,7 @@ int viRunMircoOpenTest_6X()
         printf("\n");
     }
 
-    if(OpenTestRxDiff() == _FAIL) 
+    if(OpenTestRxDiff() == _FAIL)
         RxDiffStatus = _FAIL;
 
     if(TxAverageStatus == _FAIL || RxDiffStatus == _FAIL) {
@@ -3891,7 +3892,7 @@ int viRunUniformityTest_6X()
                 ST.v6_unifor_daltc[CHX][CHY].max_st = NODE_PASS;
                 ST.v6_unifor_daltc[CHX][CHY].min_st = NODE_PASS;
                 //profile 1.0.2.0 version above use all node test
-                if ((ST.v6_unifor_daltc[CHX][CHY].data > ST.Uniformity.Max_Threshold || ST.v6_unifor_daltc[CHX][CHY].data < ST.Uniformity.Min_Threshold) 
+                if ((ST.v6_unifor_daltc[CHX][CHY].data > ST.Uniformity.Max_Threshold || ST.v6_unifor_daltc[CHX][CHY].data < ST.Uniformity.Min_Threshold)
                 && (ST.PFVer < PROFILE_V1_0_2_0))
                 {
                     ST.v6_unifor_daltc[CHX][CHY].status = NODE_FAIL;
@@ -4006,6 +4007,7 @@ int viRunFWVerTest()
         return viRunFWVerTest_3X();
     else if(inProtocolStyle == _Protocol_V6_)
         return viRunFWVerTest_6X();
+    return _FAIL;
 }
 
 int viRunFWVerTest_3X()
@@ -4392,14 +4394,11 @@ int init_sentest_array()
 
     //set short array
     ST.short_daltc = (short int**)calloc(4, sizeof(short int*));
-    for(i = 0; i < 4; i++)
-    {
+    for(i = 0; i < 4; i++) {
         if(i % 2 == 0)
             ST.short_daltc[i] = (short int*)calloc(ptl.x_ch, sizeof(short int));
         else
-        {
             ST.short_daltc[i] = (short int*)calloc(ptl.y_ch, sizeof(short int));
-        }
     }
     ST.v6_short_daltc = (SensorTest_Node**)calloc(2 , sizeof(SensorTest_Node*));
     ST.v6_short_daltc[0] = (SensorTest_Node*)calloc(ptl.x_ch , sizeof(SensorTest_Node));
@@ -4500,6 +4499,8 @@ int init_sentest_array()
         ST.dac_mc_n[i] = (short int*)calloc(ptl.y_ch, sizeof(short int));
     //FW check
     ST.LogPath = (char *)calloc(1024, sizeof(char));
+
+    return 0;
 }
 int viRunSensorTest(int inFunctions)
 {
@@ -4525,7 +4526,7 @@ int viRunSensorTest_V3(int inFunctions)
     if (viEnterTestMode() != _FAIL && viGetPanelInfor() != _FAIL && inFunctions > 0)
     {
         init_sentest_array();
-        //read profile set sensor 
+        //read profile set sensor
         if (strlen((char *)IniPath) != 0)
         {
             inFunctions = ReadST();
@@ -4674,15 +4675,17 @@ END:
     viExitTestMode();
     return ret;
 }
+
 int ReadST()
 {
-    if (inProtocolStyle == _Protocol_V3_) {
+    if (inProtocolStyle == _Protocol_V3_)
         return ReadST_V3();
-    }
-    else if (inProtocolStyle == _Protocol_V6_) {
+    else if (inProtocolStyle == _Protocol_V6_)
         return ReadST_V6();
-    }
+
+    return _FAIL;
 }
+
 int ReadST_V3()
 {
     //    int *ptr;

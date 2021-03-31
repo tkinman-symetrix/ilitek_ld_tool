@@ -502,6 +502,7 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
         }
         i += HEX_DATA_POS_HEAD + (len * 2) + HEX_CHKSUM_LEN + offset;
     }
+
     if(inProtocolStyle == _Protocol_V6_) {
         printf("------------Daemon Block information------------\n");
         //for(i = 0; i <= end_addr; i++) {
@@ -519,14 +520,15 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
                 }
             }
        // }
-    }
-    else if(inProtocolStyle == _Protocol_V3_) {
+    } else if(inProtocolStyle == _Protocol_V3_) {
         PRINTF("%s, ap_start_address:0x%06X, ap_end_address:0x%06X, ap_check = 0x%06X\n",
         __func__, upg.ap_start_addr, upg.ap_end_addr, upg.ap_check);
         PRINTF("%s, df_start_address:0x%06X, df_end_address:0x%06X, df_check = 0x%06X\n",
         __func__, upg.df_start_addr, upg.df_end_addr, upg.df_check);
         PRINTF("%s, parsing hex file completed\n", __func__);
     }
+
+	return 0;
 }
 
 int UpgradeFirmware_Pro1_6(unsigned char *buffer)
@@ -825,6 +827,8 @@ int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
         PRINTF("%s, WriteAPData: CheckSum Failed! Real=0x%x,Get=0x%x\n", __func__, dae_crc, ic_crc);
         return _FAIL;
     }
+
+	return _SUCCESS;
 }
 
 int Program_Slave_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
@@ -902,6 +906,8 @@ END:
             return _FAIL;
         }
     }
+
+	return ret;
 }
 
 int UpgradeFirmware_Pro1_8(unsigned char *buffer)
