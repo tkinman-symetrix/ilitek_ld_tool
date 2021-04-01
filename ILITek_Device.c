@@ -45,7 +45,7 @@ unsigned char ucSignedDatas=0;
 //I2C-HID
 char hidraw_path[64];
 
-#ifdef USE_LIBUSB
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 ILIUSB_DEVICE iliusb;
 #endif
 
@@ -218,7 +218,7 @@ int open_hidraw_device()
 	return _FAIL;
 }
 
-#ifdef USE_LIBUSB
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 struct usb_dev_handle *open_usb_hid_device()
 {
 	struct usb_bus *busses, *bus;
@@ -437,7 +437,7 @@ int InitDevice()
 	{
 		ret = OpenI2CDevice();
 	}
-#ifdef USE_LIBUSB
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 	else if(inConnectStyle==_ConnectStyle_USB_) {
 		hdev=open_usb_hid_device();
 		if(!hdev)
@@ -545,15 +545,11 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
 			PRINTF("%s, write 0x%x command fail, ret=%d\n", __func__, OutBuff[0],ret);
 			return _FAIL;
 		}
-	}
-#ifdef USE_LIBUSB
-	else
-	{
+	} else {
 		uint8_t *WriteBuff = NULL, *ReadBuff = NULL;
 		//bool INTInFlag = true;
 		uint32_t w_report = 0, wlen = 0;
 		uint32_t r_report = 0, rlen = 0;
-		int retry_count = 0;
 
 		if(writelen > BYTE_2K + 1)
 			writelen = BYTE_2K + 1;
@@ -628,7 +624,9 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
 			WriteBuff[5] = (readlen >> 8) & 0xFF;
 			memcpy(WriteBuff + 6, OutBuff, writelen);
 		}
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 		if (inConnectStyle==_ConnectStyle_USB_) {
+			int retry_count = 0;
 WRITE_AGAIN:
 			if (writelen == 0 || usb_control_msg(hdev, 0x21, 0x09, w_report, 0, (char *)WriteBuff, wlen, 10000) > 0) //bl nk ap ok
 			{
@@ -678,7 +676,9 @@ AGAIN:
 					return _FAIL;
 				}
 			}
-		} else if (inConnectStyle==_ConnectStyle_I2CHID_) {
+		}
+#endif
+		if (inConnectStyle==_ConnectStyle_I2CHID_) {
 			if (writelen == 0 || ioctl(fd, HIDIOCSFEATURE(wlen), WriteBuff) > 0) {
 				if (readlen > 0) {
 					usleep(1000);
@@ -702,11 +702,11 @@ AGAIN:
 				}
 				/* Cmd needs to wait Ack */
 				else if (OutBuff[0] == ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_ADDR ||
-						OutBuff[0] == ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_NUM ||
-						OutBuff[0] == ILITEK_TP_CMD_ACCESS_SLAVE ||
-						OutBuff[0] == ILITEK_TP_CMD_SET_CDC_INITOAL_V6 ||
-						OutBuff[0] == ILITEK_TP_CMD_WRITE_DATA ||
-						OutBuff[0] == ILITEK_TP_CMD_GET_CDC_DATA_V6) {
+					 OutBuff[0] == ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_NUM ||
+					 OutBuff[0] == ILITEK_TP_CMD_ACCESS_SLAVE ||
+					 OutBuff[0] == ILITEK_TP_CMD_SET_CDC_INITOAL_V6 ||
+					 OutBuff[0] == ILITEK_TP_CMD_WRITE_DATA ||
+					 OutBuff[0] == ILITEK_TP_CMD_GET_CDC_DATA_V6) {
 					int i = 0, retryCnt = 5;
 
 					for (i = 0; i < retryCnt; i++) {
@@ -741,7 +741,6 @@ AGAIN:
 		printf("\n");
 	}
 #endif
-#endif
 	return _SUCCESS;
 }
 
@@ -752,7 +751,7 @@ void CloseDevice()
 	{
 		close(fd);
 	}
-#ifdef USE_LIBUSB
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 	else
 	{
 		usb_release_interface(hdev, 0);

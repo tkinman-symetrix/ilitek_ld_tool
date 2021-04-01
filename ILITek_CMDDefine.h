@@ -14,14 +14,16 @@
 #include <sys/stat.h>
 #include <math.h>
 #include "ILITek_Device.h"
-#ifdef USE_LIBUSB
+
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 #include <usb.h>
+#endif
+
 #include <linux/hid.h>
 #include <linux/hiddev.h>
 #include <linux/hidraw.h>
-#endif
-#include <stdint.h>
 
+#include <stdint.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
 

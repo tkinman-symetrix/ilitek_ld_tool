@@ -5,8 +5,8 @@
 //---------------------------------------------------------------
 #define TOOL_VERSION "ILITEK LINUX DAEMON V3.0.5.Test1\n"
 #define REPORT_VERSION  "Report_Format_version  ,0.0.1.0\n"
-#define USE_LIBUSB
-#ifdef USE_LIBUSB
+
+#ifdef CONFIG_ILITEK_USE_LIBUSB
 #include <usb.h>
 typedef struct _ILIUSB_DEVICE_
 {
@@ -16,6 +16,7 @@ typedef struct _ILIUSB_DEVICE_
 
 } ILIUSB_DEVICE;
 #endif
+
 #define _APMode_  0x01
 #define _BLMode_  0x02
 #define _MaxChanelNum_          300

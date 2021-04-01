@@ -264,10 +264,6 @@ int ModeCtrl_V6(uint8_t mode, uint8_t engineer)
 				break;
 			}
 	}
-#ifdef USE_LIBUSB
-	// usb_clear_halt(iliusb.dev, iliusb.ep_in);
-	// usb_clear_halt(iliusb.dev, iliusb.ep_out);
-#endif
 	usleep(200000);
 	if(ret < _SUCCESS) {
 		PRINTF("Fail\n");

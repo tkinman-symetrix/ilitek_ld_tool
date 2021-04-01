@@ -13,7 +13,7 @@ objects := ILITek_Main.c \
 	   API/ILITek_SensorTest.c \
 	   API/ILITek_Upgrade.c
 
-libraries := usb m
+libraries := stdc++ rt pthread m
 
 include_path := ./include
 source_path := ./src
@@ -25,6 +25,9 @@ CXXFLAGS += -D__ENABLE_DEBUG__
 CXXFLAGS += -D__ENABLE_OUTBUF_DEBUG__
 CXXFLAGS += -D__ENABLE_INBUF_DEBUG__
 CXXFLAGS += -D__ENABLE_LOG_FILE_DEBUG__
+
+# CXXFLAGS += -DCONFIG_ILITEK_USE_LIBUSB
+# libraries += usb
 
 CXXFLAGS += -static
 
@@ -48,4 +51,3 @@ all: $(objects)
 .PHONY: clean
 clean:
 	@rm -rf $(program)
-	@rm -rf $(objects)
