@@ -15,6 +15,9 @@ objects := ILITek_Main.c \
 
 libraries := usb m
 
+include_path := ./include
+source_path := ./src
+
 CXX ?= gcc
 
 CXXFLAGS = -Wall -ansi -O3 -g
@@ -25,14 +28,24 @@ CXXFLAGS += -D__ENABLE_LOG_FILE_DEBUG__
 
 CXXFLAGS += -static
 
+INC_FLAGS += $(addprefix -I, $(include_path))
 LIB_FLAGS += $(addprefix -l, $(libraries))
-
+VPATH = $(include_path)
+vpath %.h $(include_path)
+vpath %.c $(source_path)
+vpath %.cpp $(source_path)
+.SUFFIXS: .c .cpp .h
 
 .PHONY: all
 all: $(objects)
 	$(CXX) $^ $(CXXFLAGS) $(LIB_FLAGS) -o $(program)
 	@chmod 777 $(program)
 
+
+%.o: %.cpp
+	$(CXX) -c $< $(CXXFLAGS) $(LIB_FLAGS)
+
 .PHONY: clean
 clean:
 	@rm -rf $(program)
+	@rm -rf $(objects)
