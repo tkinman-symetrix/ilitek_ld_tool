@@ -10,9 +10,9 @@
 #include <usb.h>
 typedef struct _ILIUSB_DEVICE_
 {
-    struct usb_dev_handle *dev;
-    uint32_t ep_in;
-    uint32_t ep_out;
+	struct usb_dev_handle *dev;
+	uint32_t ep_in;
+	uint32_t ep_out;
 
 } ILIUSB_DEVICE;
 #endif
@@ -34,10 +34,10 @@ typedef struct _ILIUSB_DEVICE_
 //#define DEBUG_TRANSFER_DATA
 typedef struct _SLAVE_INFO_
 {
-    int	CRC_Code_1;
-    int CRC_Code_2;
-    int FW_Ver_1;
-    int	FW_Ver_2;
+	int	CRC_Code_1;
+	int CRC_Code_2;
+	int FW_Ver_1;
+	int	FW_Ver_2;
 } SLAVE_INFO;
 
 extern int inConnectStyle;

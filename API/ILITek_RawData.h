@@ -1,14 +1,14 @@
 
 /******************** (C) COPYRIGHT 2019 ILI Technology Corp. ********************
-* File Name :   IliTek_RawData.h
-* Description   :   Header for IliTek_RawData.c file
-*
-********************************************************************************
-*History:
-*   Version        Date           Author            Description
-*   --------------------------------------------------------------------------
-*      1.0       2019/02/15          Randy           Initial version
-*******************************************************************************/
+ * File Name :   IliTek_RawData.h
+ * Description   :   Header for IliTek_RawData.c file
+ *
+ ********************************************************************************
+ *History:
+ *   Version        Date           Author            Description
+ *   --------------------------------------------------------------------------
+ *      1.0       2019/02/15          Randy           Initial version
+ *******************************************************************************/
 
 #ifndef _ILITEK_RAWDATA_H_
 #define _ILITEK_RAWDATA_H_

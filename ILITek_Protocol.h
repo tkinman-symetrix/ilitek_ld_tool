@@ -8,18 +8,18 @@
 //------------------------------------------------
 #include <stdint.h>
 typedef struct _PROTOCOL_DATA_ {
-    unsigned char ic_num;
-    unsigned int x_max;
-    unsigned int y_max;
-    unsigned int ic;
-    unsigned int ver;
-    unsigned int x_ch;
-    unsigned int y_ch;
-    unsigned char mode_num;
-    unsigned char mode[3];
-    unsigned char block_num;
-    unsigned int key_num;
-    unsigned char key_mode;
+	unsigned char ic_num;
+	unsigned int x_max;
+	unsigned int y_max;
+	unsigned int ic;
+	unsigned int ver;
+	unsigned int x_ch;
+	unsigned int y_ch;
+	unsigned char mode_num;
+	unsigned char mode[3];
+	unsigned char block_num;
+	unsigned int key_num;
+	unsigned char key_mode;
 } PROTOCOL_DATA;
 extern PROTOCOL_DATA ptl;
 //-------------------------------------------------
@@ -51,7 +51,7 @@ extern int PanelInfor_V3();
 extern int viSwitchMode_V3(int mode);
 int SetProgramKey_V3();
 extern int CheckBusy_3X(int count, int delay);
-extern int GetKeyInfor_V3(int key_num); 
+extern int GetKeyInfor_V3(int key_num);
 extern int32_t GetFlashData_V3(uint32_t start, uint32_t len, char *path);
 //-------------------------------AP V6---------------------------------
 extern int PanelInfor_V6();
@@ -60,9 +60,9 @@ extern unsigned int GetICBlockCrcAddr(unsigned int start, unsigned int end, unsi
 int SetProgramKey_V6();
 extern int CheckBusy_6X(int count, int delay, int type);
 extern int SetFsInfo(uint16_t mc_sine_start, uint16_t mc_sine_end, uint8_t mc_sine_step,
-              uint16_t mc_swcap_start, uint16_t mc_swcap_end, uint8_t mc_swcap_step,
-              uint16_t sc_swcap_start, uint16_t sc_swcap_end, uint8_t sc_swcap_step,
-              uint16_t frame_num, uint8_t scan_data);
+		uint16_t mc_swcap_start, uint16_t mc_swcap_end, uint8_t mc_swcap_step,
+		uint16_t sc_swcap_start, uint16_t sc_swcap_end, uint8_t sc_swcap_step,
+		uint16_t frame_num, uint8_t scan_data);
 extern uint32_t SetShortInfo(uint8_t dump1,uint8_t dump2, uint8_t verf, uint8_t posidleL, uint8_t posidleH);
 extern int SetDataLength_V6(uint32_t data_len);
 extern int GetSlaveICMode_V6(int number);

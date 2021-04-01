@@ -1,14 +1,14 @@
 
 /******************** (C) COPYRIGHT 2019 ILI Technology Corp. ********************
-* File Name :   IliTek_Upgrade.h
-* Description   :   Header for IliTek_Upgrade.c file
-*
-********************************************************************************
-*History:
-*   Version        Date           Author            Description
-*   --------------------------------------------------------------------------
-*      1.0       2019/02/15          Randy           Initial version
-*******************************************************************************/
+ * File Name :   IliTek_Upgrade.h
+ * Description   :   Header for IliTek_Upgrade.c file
+ *
+ ********************************************************************************
+ *History:
+ *   Version        Date           Author            Description
+ *   --------------------------------------------------------------------------
+ *      1.0       2019/02/15          Randy           Initial version
+ *******************************************************************************/
 
 #ifndef _ILITEK_UPGRADE_H_
 #define _ILITEK_UPGRADE_H_
@@ -38,37 +38,37 @@
 #define LEGO_AP_START_ADDRESS				0x3000
 /* Extern typedef -----------------------------------------------------------*/
 struct IC_DATA {
-    unsigned char mode;
-    unsigned short crc;
+	unsigned char mode;
+	unsigned short crc;
 };
 
 struct BLOCK_DATA {
-    unsigned int start;
-    unsigned int end;
-    unsigned short ic_crc;
-    unsigned short dae_crc;
-    bool chk_crc;               //false: ic and daemon are different.
+	unsigned int start;
+	unsigned int end;
+	unsigned short ic_crc;
+	unsigned short dae_crc;
+	bool chk_crc;               //false: ic and daemon are different.
 };
 
 struct UPGRADE_DATA {
-    unsigned char *filename;
-    unsigned int hexfilesize;
-    unsigned int ap_start_addr;
-    unsigned int df_start_addr;
-    unsigned int exaddr;
-    unsigned int ap_end_addr;
-    unsigned int df_end_addr;
-    unsigned int ap_check;
-    unsigned int df_check;
-    unsigned int total_check;
-    unsigned char hex_fw_ver[HEX_FWVERSION_SIZE];
-    unsigned char hex_ic_type[HEX_KERNEL_VERSION_SIZE];
-    bool hex_info_flag;
-    bool df_tag_exist;
-    unsigned int map_ver;
-    unsigned int blk_num;
-    struct BLOCK_DATA *blk;
-    struct IC_DATA *ic;
+	unsigned char *filename;
+	unsigned int hexfilesize;
+	unsigned int ap_start_addr;
+	unsigned int df_start_addr;
+	unsigned int exaddr;
+	unsigned int ap_end_addr;
+	unsigned int df_end_addr;
+	unsigned int ap_check;
+	unsigned int df_check;
+	unsigned int total_check;
+	unsigned char hex_fw_ver[HEX_FWVERSION_SIZE];
+	unsigned char hex_ic_type[HEX_KERNEL_VERSION_SIZE];
+	bool hex_info_flag;
+	bool df_tag_exist;
+	unsigned int map_ver;
+	unsigned int blk_num;
+	struct BLOCK_DATA *blk;
+	struct IC_DATA *ic;
 };
 extern struct UPGRADE_DATA upg;
 /* Extern macro -------------------------------------------------------------*/
