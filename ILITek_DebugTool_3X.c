@@ -2,7 +2,6 @@
 #include "ILITek_CMDDefine.h"
 #include "ILITek_Device.h"
 
-unsigned char *temp_ILITEK_PID;
 FILE *fp_csvSd;
 char raw_log_file_csvSd_tmp[512];
 static const char *raw_log_file_csvSd;
@@ -12,8 +11,7 @@ static int file_count = 0;
 #define SAVE_DEBUGLOG
 //using for i2c adapter check
 int active_interface;
-char ILITEK_I2C_CONTROLLER[255];
-int ILITEK_DEFAULT_I2C_ADDRESS;
+
 int ilitek_fd = 0;
 //using for check bl is old
 int is_usb_hid_old_bl = 0;
@@ -338,7 +336,6 @@ void vfRunUSBDebug_3X()
     struct tm *timeinfo;
     struct hidraw_devinfo device_info;
     char device_name[256];
-    int bufferlen = 63;
     ssize_t error;
 
     active_interface = ACTIVE_INTERFACE_ILITEK_CTRL_I2C;
@@ -401,9 +398,9 @@ void vfRunUSBDebug_3X()
 #endif
                     while(isStop != 1)
                     {
-                        error = read(fd, buf, bufferlen);
-			if (error < 0)
-			    return;
+                        error = read(fd, buf, 32);
+						if (error < 0)
+			    			return;
                         //for(bufferindex = 0; bufferindex < 63; bufferindex++)
                         //{
                         //	PRINTF("buf[%d]=%d\n", bufferindex, buf[bufferindex]);

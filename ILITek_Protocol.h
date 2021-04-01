@@ -1,6 +1,6 @@
 
-#ifndef INC_ILITEK_PROTOCOL_3X_H_
-#define INC_ILITEK_PROTOCOL_3X_H_
+#ifndef INC_ILITEK_PROTOCOL_H_
+#define INC_ILITEK_PROTOCOL_H_
 
 #define PROTOCOL_V3_4_0         0x30400
 #define PROTOCOL_V6_0_0         0x60000
@@ -21,7 +21,6 @@ typedef struct _PROTOCOL_DATA_ {
     unsigned int key_num;
     unsigned char key_mode;
 } PROTOCOL_DATA;
-PROTOCOL_DATA ptl;
 extern PROTOCOL_DATA ptl;
 //-------------------------------------------------
 extern int GetFWVersion();

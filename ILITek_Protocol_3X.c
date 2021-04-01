@@ -5,6 +5,8 @@
 #include "API/ILITek_Upgrade.h"
 #include "ILITek_Main.h"
 
+PROTOCOL_DATA ptl;
+
 int software_reset()
 {
     int ret = _FAIL;

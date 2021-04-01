@@ -17,9 +17,8 @@ int HID_INTERFACE_COUNT = 1;
 int ILITEK_PID = 0x0,ILITEK_VID = 0x0, OTHER_VID =0x0;
 unsigned char *temp_ILITEK_PID;
 
-int is_usb_hid_old_bl;
 struct usb_dev_handle *hdev;
-int active_interface;
+
 //I2C
 char ILITEK_I2C_CONTROLLER[255];
 int ILITEK_DEFAULT_I2C_ADDRESS;
@@ -45,6 +44,10 @@ unsigned char ucSignedDatas=0;
 //-----------------------------------
 //I2C-HID
 char hidraw_path[64];
+
+#ifdef USE_LIBUSB
+ILIUSB_DEVICE iliusb;
+#endif
 
 unsigned int hex_2_dec(char *hex, int len)
 {
@@ -178,7 +181,7 @@ int SetConnectStyle(char *argv[])
 		} else {
 			ret = _FAIL;
 		}
-			
+
 		if (strlen(argv[hidraw_path_idx]) >= sizeof(hidraw_path)) {
 			PRINTF("wrong args:%s\n", argv[hidraw_path_idx]);
 			ret = _FAIL;
@@ -313,7 +316,7 @@ struct usb_dev_handle *open_usb_hid_device_with_pid()
         struct usb_device *dev;
         for(dev = bus->devices; dev; dev = dev->next)
         {
-            if(((dev->descriptor.idVendor == ILITEK_VENDOR_ID) || (dev->descriptor.idVendor == OTHER_VENDOR_ID) || (dev->descriptor.idVendor ==OTHER_VID)) 
+            if(((dev->descriptor.idVendor == ILITEK_VENDOR_ID) || (dev->descriptor.idVendor == OTHER_VENDOR_ID) || (dev->descriptor.idVendor ==OTHER_VID))
             && ((dev->descriptor.idProduct == hex_2_dec((char *)temp_ILITEK_PID, 4)) || dev->descriptor.idProduct == 0x0006))
             {
                 PRINTF("%s, ILITEK usb_hid device found, devnum=%u, 0x%04X:0x%04X\n", __func__, dev->devnum, dev->descriptor.idVendor, dev->descriptor.idProduct);
@@ -434,7 +437,7 @@ int InitDevice()
     {
         ret = OpenI2CDevice();
     }
-#ifdef USE_LIBUSB 
+#ifdef USE_LIBUSB
     else if(inConnectStyle==_ConnectStyle_USB_) {
         hdev=open_usb_hid_device();
         if(!hdev)

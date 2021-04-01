@@ -9,4 +9,5 @@
 #define INC_ILITEK_DEBUGTOOL_3X_H_
 
 extern void vfRunDebug_3X(char *cStyle,int iRun);
+
 #endif /* INC_ILITEK_DEBUGTOOL_3X_H_ */

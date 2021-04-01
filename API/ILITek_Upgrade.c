@@ -45,10 +45,13 @@
 struct timeval tv;
 struct timezone tz;
 __time_t basetime;
+
+struct UPGRADE_DATA upg;
+
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-//struct UPGRADE_DATA upg = {0};
+
 int str_to_array(char *tmp_str, unsigned char *tmp_array,int len)
 {
     int ucCount = 0;

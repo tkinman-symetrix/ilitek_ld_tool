@@ -1,4 +1,3 @@
-
 #ifndef INC_ILITEK_DEVICE_H_
 #define INC_ILITEK_DEVICE_H_
 #include <stdint.h>
@@ -16,8 +15,6 @@ typedef struct _ILIUSB_DEVICE_
     uint32_t ep_out;
 
 } ILIUSB_DEVICE;
-ILIUSB_DEVICE iliusb;
-extern ILIUSB_DEVICE iliusb;
 #endif
 #define _APMode_  0x01
 #define _BLMode_  0x02
@@ -47,6 +44,9 @@ extern int inConnectStyle;
 extern int inProtocolStyle;
 extern int is_usb_hid_old_bl;
 extern int ILITEK_PID, ILITEK_VID, OTHER_VID;
+
+extern int active_interface;
+
 //---------------------------------------------------------------
 extern int sockfd;
 extern struct sockaddr_in server_addr;

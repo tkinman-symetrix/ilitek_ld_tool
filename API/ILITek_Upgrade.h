@@ -70,7 +70,6 @@ struct UPGRADE_DATA {
     struct BLOCK_DATA *blk;
     struct IC_DATA *ic;
 };
-struct UPGRADE_DATA upg;
 extern struct UPGRADE_DATA upg;
 /* Extern macro -------------------------------------------------------------*/
 /* Extern variables ---------------------------------------------------------*/
