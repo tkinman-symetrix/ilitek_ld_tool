@@ -1,15 +1,13 @@
-
-/******************** (C) COPYRIGHT 2019 ILI Technology Corp. ********************
- * File Name :   IliTek_Upgrade.c
- * Description   :   Upgrade function
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * ILITEK Linux Daemon Tool
  *
- ********************************************************************************
- *History:
- *   Version        Date           Author            Description
- *   --------------------------------------------------------------------------
- *      1.0       2019/02/15          Randy           Initial version
- *******************************************************************************/
-
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #ifndef _ILITEK_UPGRADE_C_
 #define _ILITEK_UPGRADE_C_
 
@@ -55,9 +53,9 @@ struct UPGRADE_DATA upg;
 int str_to_array(char *tmp_str, unsigned char *tmp_array,int len)
 {
 	int ucCount = 0;
+
 	PRINTF("tmp_str len = %zu,len = %d\n", strlen(tmp_str), len);
-	for (ucCount = 0; ucCount < len; ucCount++)
-	{
+	for (ucCount = 0; ucCount < len; ucCount++) {
 		tmp_array[ucCount] = hex_2_dec(&tmp_str[2 * ucCount], 2);
 		PRINTF("0x%x,", tmp_array[ucCount]);
 	}
@@ -83,12 +81,11 @@ int check_ictype(char *ucTempData)
 {
 	int ret = _SUCCESS;
 	unsigned char ucCount;
-	if((KernelVersion[0] == 0x0 && KernelVersion[1] == 0x0) || (KernelVersion[0] == 0xFF && KernelVersion[1] == 0xFF))
+	if ((KernelVersion[0] == 0x0 && KernelVersion[1] == 0x0) ||
+	    (KernelVersion[0] == 0xFF && KernelVersion[1] == 0xFF))
 		return _FAIL;
-	for (ucCount = 0; ucCount < 2; ucCount++)
-	{
-		if (ucTempData[ucCount] != KernelVersion[ucCount])
-		{
+	for (ucCount = 0; ucCount < 2; ucCount++) {
+		if (ucTempData[ucCount] != KernelVersion[ucCount]) {
 			ret = _FAIL;
 			break;
 		}
@@ -102,37 +99,31 @@ int FW_ForceUpdate_Chk(unsigned char *buffer)
 	uint16_t get_Check = 0;
 	unsigned int i = 0;
 
-	if(GetICMode() != _FAIL){
+	if (GetICMode() != _FAIL){
 		if (ICMode == OP_MODE_BOOTLOADER) {
 			PRINTF("%s, IC in BL mode, force update!!\n", __func__);
 			return _FAIL;
 		}
-	}
-	else {
+	} else {
 		PRINTF("%s, Check IC mode fail, force update!!", __func__);
 		return _FAIL;
 	}
 
-	if(KernelVersion[1] == 0x23 && (KernelVersion[0] == 0x12 || KernelVersion[0] == 0x15))
-	{
+	if (KernelVersion[1] == 0x23 && (KernelVersion[0] == 0x12 || KernelVersion[0] == 0x15)) {
 		PRINTF("not support crc\n");
 		return _FAIL;
-	}
-	else if(inProtocolStyle == _Protocol_V3_ && upg.df_tag_exist) {
+	} else if(inProtocolStyle == _Protocol_V3_ && upg.df_tag_exist) {
 		PRINTF("%s, Hex exist data flash, force update!!\n", __func__);
 		return _FAIL;
-	}
-	else if(inProtocolStyle == _Protocol_V3_) {
+	} else if(inProtocolStyle == _Protocol_V3_) {
 		upg.ap_check = CheckFWCRC(upg.ap_start_addr, upg.ap_end_addr - 2, buffer);
 		get_Check = GetCodeCheckSum(0);
 		PRINTF("%s, CRC Real=0x%x,Get=0x%x!!\n", __func__, upg.ap_check, get_Check);
-		if (upg.ap_check != get_Check)
-		{
+		if (upg.ap_check != get_Check) {
 			PRINTF("%s, Real=0x%x,Get=0x%x CheckSum different and force update!!\n", __func__, upg.ap_check, get_Check);
 			ret = _FAIL;
 		}
-	}
-	else if(inProtocolStyle == _Protocol_V6_) {
+	} else if(inProtocolStyle == _Protocol_V6_) {
 		ModeCtrl_V6(ENTER_NORMAL_MODE, DISABLE_ENGINEER);
 		ModeCtrl_V6(ENTER_SUSPEND_MODE, ENABLE_ENGINEER);
 		for(i = 0; i < upg.blk_num; i++) {
@@ -140,8 +131,7 @@ int FW_ForceUpdate_Chk(unsigned char *buffer)
 			upg.blk[i].dae_crc = CheckFWCRC(upg.blk[i].start, upg.blk[i].end - 1, buffer);
 			if(upg.blk[i].ic_crc == upg.blk[i].dae_crc) {
 				upg.blk[i].chk_crc = true;
-			}
-			else {
+			} else {
 				ret = _FAIL;
 				PRINTF("CRC compare fail\n");
 			}
@@ -174,11 +164,13 @@ int GetDFStartAddr(void) {
 		return _FAIL;
 	return ret;
 }
-int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
+
+int viRunFirmwareUpgrade(unsigned char *filename, char *cFWVersion)
 {
 	int ret = _SUCCESS, fd = 0;
 	int iUpdate = NEED_UPGRADE_FW;
 	unsigned char *pbuf = NULL, *buffer = NULL, ucTempData[8];
+
 	//init variables
 	upg.ap_start_addr = 0xFFFF;
 	upg.ap_end_addr = 0x0;
@@ -193,38 +185,38 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
 	basetime = tv.tv_sec;
 
 	gettimeofday(&tv , &tz);
-	printf("viRunFiremwareUpgrade start time:%ld.%ld\n", tv.tv_sec - basetime, tv.tv_usec);
+	printf("viRunFirmwareUpgrade start time:%ld.%ld\n", tv.tv_sec - basetime, tv.tv_usec);
 
 	if (viGetPanelInfor() == _FAIL) {
 		PRINTF("Get Panel information Failed!!!");
 		return _FAIL;
 	}
+
 	fd = open((char *)filename, O_RDONLY);
-	if (fd < 0)
-	{
+	if (fd < 0) {
 		PRINTF("%s, cannot open %s file\n", __func__, filename);
 		return _FAIL;
 	}
 	upg.hexfilesize = get_file_size((char *)filename);
 	PRINTF("%s, hex file size, 0x%X\n", __func__, upg.hexfilesize);
+
 	//allocate buffer for reading file
 	pbuf = (unsigned char *)malloc(upg.hexfilesize);
-	if (pbuf == NULL)
-	{
+	if (!pbuf) {
 		close(fd);
 		PRINTF("%s, allocate read buffer, error\n", __func__);
 		return _FAIL;
 	}
 	//initial pbuf and set pbuf size
 	memset(pbuf, 0, upg.hexfilesize);
+
 	//read hex file content to pbuf
 	if (read(fd, pbuf, upg.hexfilesize) != upg.hexfilesize)
 		PRINTF("%s, read failed, ret != readsize\n", __func__);
 	else
 		PRINTF("%s, read hex file to memoery, completed\n", __func__);
 	buffer = (unsigned char *)malloc(ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE);
-	if (buffer == NULL)
-	{
+	if (!buffer) {
 		close(fd);
 		free(pbuf);
 		PRINTF("%s, allocate firmware buffer error\n", __func__);
@@ -233,54 +225,42 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
 	//initial jbuffer(firmware buffer) and set buffer(firmware buffer) size
 	memset(buffer, 0xFF, ILITEK_DEFAULT_I2C_MAX_FIRMWARE_SIZE);
 	//
-	if(ptl.ic == 0x2312 || ptl.ic == 0x2315) {
+	if (ptl.ic == 0x2312 || ptl.ic == 0x2315)
 		memset(buffer+0x1F000, 0, 0x1000);
-	}
+
 	hex_file_convert(pbuf, buffer,upg.hexfilesize);
-	if(upg.hex_info_flag == true)
-	{
-		if(check_ictype((char *)upg.hex_ic_type) < 0)
-		{
+	if (upg.hex_info_flag == true) {
+		if (check_ictype((char *)upg.hex_ic_type) < 0) {
 			PRINTF("IC:%x%x,Hex:%x%x\n",KernelVersion[1],KernelVersion[0],upg.hex_ic_type[1],upg.hex_ic_type[0]);
 			PRINTF("Hex and IC MCU version is diff\n");
 			free(pbuf);
 			free(buffer);
 			return _FAIL;
 		}
-	}
-	else
-	{
+	} else {
 		/* code */
 		PRINTF("No support check IC type\n");
 	}
-	if(FW_ForceUpdate_Chk(buffer) == _SUCCESS)
-	{
+
+	if (FW_ForceUpdate_Chk(buffer) == _SUCCESS)
 		iUpdate = NO_NEED_UPGRADE_FW;
-	}
-	if (cFWVersion != NULL && (strlen(cFWVersion) >= 4))
-	{
+	if (cFWVersion != NULL && (strlen(cFWVersion) >= 4)) {
 		str_to_array(cFWVersion, ucTempData, 8);
 		iUpdate = viCheckFWNeedUpgrade((char *)ucTempData);
-	}
-	else if(cFWVersion != NULL && upg.hex_info_flag)
-	{
+	} else if(cFWVersion != NULL && upg.hex_info_flag) {
 		PRINTF("%s, Support auto compare FW version\n", __func__);
 		iUpdate = viCheckFWNeedUpgrade((char *)upg.hex_fw_ver);
 	}
 
 
-	if (iUpdate == NEED_UPGRADE_FW)
-	{
+	if (iUpdate == NEED_UPGRADE_FW) {
 		if(FiremwareUpgrade(buffer) < 0)
 			return _FAIL;
-	}
-	else
-	{
+	} else {
 		if(inProtocolStyle == _Protocol_V3_ && upg.df_tag_exist == false){
 			ret = EraseDataFlash();
 			PRINTF("Message: Don't Need to Update!, Erase data flash\n");
-		}
-		else if(inProtocolStyle == _Protocol_V6_) {
+		} else if(inProtocolStyle == _Protocol_V6_) {
 			ret = ModeCtrl_V6(ENTER_NORMAL_MODE, DISABLE_ENGINEER);
 			if(ptl.ic == 0x2326) {
 				PRINTF("Firmware Upgrade on Slave\n");
@@ -290,7 +270,7 @@ int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion)
 		}
 	}
 	gettimeofday(&tv , &tz);
-	printf("viRunFiremwareUpgrade end time:%ld.%ld\n", tv.tv_sec - basetime, tv.tv_usec);
+	printf("viRunFirmwareUpgrade end time:%ld.%ld\n", tv.tv_sec - basetime, tv.tv_usec);
 	return ret;
 }
 
@@ -300,23 +280,16 @@ int FiremwareUpgrade(unsigned char *buffer)
 		return _FAIL;
 	GetProtocol();
 
-	if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] >= 0x08)
-	{
+	if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] >= 0x08) {
 		if (UpgradeFirmware_Pro1_8(buffer) < 0)
 			return _FAIL;
-	}
-	else if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] >= 0x07)
-	{
+	} else if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] >= 0x07) {
 		if (UpgradeFirmware_Pro1_7(buffer) < 0)
 			return _FAIL;
-	}
-	else if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] >= 0x04)
-	{
+	} else if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] >= 0x04) {
 		if (UpgradeFirmware_Pro1_6(buffer) < 0)
 			return _FAIL;
-	}
-	else
-	{
+	} else {
 		PRINTF("Not support BL protocol,%d.%d\n", ProtocolVersion[0], ProtocolVersion[1]);
 		return _FAIL;
 	}
@@ -328,53 +301,45 @@ void hex_mapping_convert(unsigned int addr,unsigned char *buffer)
 	unsigned int hex_dfaddr_start = 0;
 	unsigned int hex_icaddr_start = 0;
 	unsigned int start = 0, count = 0, index = 0;
+
 	//get fw version
 	start = addr + HEX_FWVERSION_ADDRESS;
-	for(count = start, index = HEX_FWVERSION_SIZE - 1; count < start + HEX_FWVERSION_SIZE; count++, --index)
-	{
+	for (count = start, index = HEX_FWVERSION_SIZE - 1; count < start + HEX_FWVERSION_SIZE; count++, --index)
 		upg.hex_fw_ver[index] = buffer[count];
-	}
 	PRINTF("Hex FW version:");
-	for(count = 0; count < HEX_FWVERSION_SIZE; count++)
+	for (count = 0; count < HEX_FWVERSION_SIZE; count++)
 		PRINTF("0x%x,", upg.hex_fw_ver[count]);
 	//get df start address
 	PRINTF("\nhex df start address:");
 	hex_dfaddr_start = addr + HEX_DATA_FLASH_ADDRESS;
-	for(count = hex_dfaddr_start, index = HEX_DATA_FLASH_SIZE - 1; count < hex_dfaddr_start + HEX_DATA_FLASH_SIZE; count++, --index)
-	{
+	for (count = hex_dfaddr_start, index = HEX_DATA_FLASH_SIZE - 1; count < hex_dfaddr_start + HEX_DATA_FLASH_SIZE; count++, --index)
 		PRINTF("0x%x,", buffer[count]);
-	}
+
 	PRINTF("\nhex ic type:");
 	hex_icaddr_start = addr + HEX_KERNEL_VERSION_ADDRESS;
-	for(count = hex_icaddr_start, index = 0; count < hex_icaddr_start + HEX_KERNEL_VERSION_SIZE; count++,index++)
-	{
+	for (count = hex_icaddr_start, index = 0; count < hex_icaddr_start + HEX_KERNEL_VERSION_SIZE; count++,index++) {
 		PRINTF("0x%x,", buffer[count]);
 		upg.hex_ic_type[index] = buffer[count];
 	}
 	//get memony mapping version
 	start = addr + HEX_MEMONY_MAPPING_VERSION_ADDRESS;
-	for(count = start, index = 0; count < start + HEX_MEMONY_MAPPING_VERSION_SIZE; count++, index++)
-	{
+	for (count = start, index = 0; count < start + HEX_MEMONY_MAPPING_VERSION_SIZE; count++, index++)
 		upg.map_ver += buffer[count] << (index*8);
-	}
+
 	PRINTF("Hex Mapping Version: 0x%x\n", upg.map_ver);
-	if(upg.map_ver >= 0x10000)
-	{
+	if (upg.map_ver >= 0x10000) {
 		//get flash block number
 		upg.blk_num = buffer[addr + HEX_FLASH_BLOCK_NUMMER_ADDRESS];
 		printf("------------Hex Block information------------\n");
 		PRINTF("Hex flash block number: %d\n", upg.blk_num);
 		upg.blk = (struct BLOCK_DATA *)calloc(upg.blk_num , sizeof(struct BLOCK_DATA));
-		for(count = 0; count < upg.blk_num; count++)
-		{
+		for (count = 0; count < upg.blk_num; count++) {
 			start = addr + HEX_FLASH_BLOCK_INFO_ADDRESS + HEX_FLASH_BLOCK_INFO_SIZE * count;
 			upg.blk[count].start = buffer[start] + (buffer[start+1] << 8) + (buffer[start+2] << 16);
-			if(count == upg.blk_num - 1)
-			{
+			if (count == upg.blk_num - 1) {
 				addr = addr + HEX_FLASH_BLOCK_END_ADDRESS;
 				upg.blk[count].end = buffer[addr] + (buffer[addr+1] << 8) + (buffer[addr+2] << 16);
-			}
-			else {
+			} else {
 				upg.blk[count].end = buffer[start+3] + (buffer[start+4] << 8) + (buffer[start+5] << 16) - 1;
 			}
 			printf("Hex Block:%d, start:0x%x end:0x%x\n", count, upg.blk[count].start,  upg.blk[count].end);
@@ -390,9 +355,10 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 	unsigned int count = 0;
 	bool read_mapping = false;
 	unsigned int len = 0, addr = 0, type = 0;
-	for (i = 0; i < hexfilesize;)
-	{
+
+	for (i = 0; i < hexfilesize;) {
 		int offset;
+
 		len = hex_2_dec((char *)&pbuf[i + 1], HEX_BYTE_CNT_LEN);
 		addr = hex_2_dec((char *)&pbuf[i + 3], HEX_ADDR_LEN);
 		type = hex_2_dec((char *)&pbuf[i + 7], HEX_RECORD_TYPE_LEN);
@@ -407,40 +373,29 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 		}
 
 		if (type == HEX_TYPE_ELA)
-		{
 			exaddr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2)) << 16;
-		}
 		if (type == HEX_TYPE_ESA)
-		{
 			exaddr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2)) << 4;
-		}
 		addr = addr + exaddr;
-		if (type == HEX_TYPE_ILI_MEM_MAP)
-		{
+		if (type == HEX_TYPE_ILI_MEM_MAP) {
 			hex_info_addr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2));
 			PRINTF("%s, hex_info_addr = 0x%x\n", __func__, hex_info_addr);
 			upg.hex_info_flag = true;
 		}
-		if(addr >= hex_info_addr + HEX_MEMONY_MAPPING_FLASH_SIZE && upg.hex_info_flag && read_mapping == false)
-		{
+		if (addr >= hex_info_addr + HEX_MEMONY_MAPPING_FLASH_SIZE && upg.hex_info_flag && read_mapping == false) {
 			read_mapping = true;
 			hex_mapping_convert(hex_info_addr, buffer);
 		}
 		//calculate checksum
 		//PRINTF("\n0x%04x:", addr);
-		for (j = HEX_DATA_POS_HEAD; j < (HEX_DATA_POS_HEAD + (len * 2)); j += 2)
-		{
-			if (type == HEX_TYPE_DATA)
-			{
+		for (j = HEX_DATA_POS_HEAD; j < (HEX_DATA_POS_HEAD + (len * 2)); j += 2) {
+			if (type == HEX_TYPE_DATA) {
 				//for ice mode write method
 
-				if (addr + (j - HEX_DATA_POS_HEAD) / 2 < upg.df_start_addr)
-				{
+				if (addr + (j - HEX_DATA_POS_HEAD) / 2 < upg.df_start_addr) {
 					upg.ap_check = upg.ap_check + hex_2_dec((char *)&pbuf[i + j], 2);
 					//PRINTF("addr = 0x%04X, ap_check = 0x%06X, data = 0x%02X\n", addr + (j - 8)/2, upg.ap_check, hex_2_dec(&pbuf[i + j], 2));
-				}
-				else
-				{
+ 				} else {
 					upg.df_check = upg.df_check + hex_2_dec((char *)&pbuf[i + j], 2);
 					//PRINTF("addr = 0x%04X, df_check = 0x%06X, data = 0x%02X\n",addr + (j - 8)/2 , upg.df_check, hex_2_dec(&pbuf[i + j], 2));
 				}
@@ -448,56 +403,43 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 		}
 
 		if (pbuf[i + j + 2 + 1] == 0x0A) // CR+LF (0x0D 0x0A)
-		{
 			offset = 2;
-		}
 		else	// CR  (0x0D)
-		{
 			offset = 1;
-		}
-		if (type == HEX_TYPE_DATA)
-		{
+
+		if (type == HEX_TYPE_DATA) {
 			//for bl protocol 1.4+, ap_start_addr and ap_end_addr
 			if (addr < start_addr)
-			{
 				start_addr = addr;
-			}
 
 			if (addr < upg.ap_start_addr)
-			{
 				upg.ap_start_addr = addr;
-			}
+
 			//for BL protocol 1.8
-			for(count = 0; count < upg.blk_num; count++) {
-				if(addr + len - 1 > upg.blk[count].start && (addr + len - 1 < upg.blk[count+1].start &&  count < upg.blk_num - 1))
+			for (count = 0; count < upg.blk_num; count++) {
+				if (addr + len - 1 > upg.blk[count].start && (addr + len - 1 < upg.blk[count+1].start &&  count < upg.blk_num - 1))
 					upg.blk[count].end = addr + len - 1;
-				else if(addr + len - 1 > upg.blk[count].start && count == upg.blk_num - 1){
+				else if (addr + len - 1 > upg.blk[count].start && count == upg.blk_num - 1)
 					upg.blk[count].end = addr + len - 1;
-				}
+
 			}
 			if ((addr + len) > upg.ap_end_addr && (addr < upg.df_start_addr))
-			{
 				upg.ap_end_addr = addr + len;
-			}
 
 			if ((addr < upg.ap_start_addr) && (addr >= upg.df_start_addr))
-			{
 				upg.df_start_addr = addr;
-			}
+
 			//for bl protocol 1.4+, bl_end_addr
 			if ((addr + len) > upg.df_end_addr && (addr >= upg.df_start_addr))
-			{
 				upg.df_end_addr = addr + len;
-			}
 
 			//fill data
-			for (j = 0, k = 0; j < (len * 2); j += 2, k++)
-			{
+			for (j = 0, k = 0; j < (len * 2); j += 2, k++) {
 				buffer[addr + k] = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD + j], 2);
 				//PRINTF("0x%02x", buffer[addr + k]);
 			}
 		}
-		if (type == HEX_TYPE_ILI_SDA){
+		if (type == HEX_TYPE_ILI_SDA) {
 			upg.df_tag_exist = true;
 			upg.df_start_addr = hex_2_dec((char *)&pbuf[i + HEX_DATA_POS_HEAD], (len * 2));
 			PRINTF("-----------Data Flash Start address:0x%x\n", upg.df_start_addr);
@@ -505,12 +447,12 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 		i += HEX_DATA_POS_HEAD + (len * 2) + HEX_CHKSUM_LEN + offset;
 	}
 
-	if(inProtocolStyle == _Protocol_V6_) {
+	if (inProtocolStyle == _Protocol_V6_) {
 		printf("------------Daemon Block information------------\n");
-		for(count = 0; count < upg.blk_num; count++) {
+		for (count = 0; count < upg.blk_num; count++) {
 			//if(upg.blk[count].end)
 			printf("Block %d, start=0x%x end=0x%x\n", count, upg.blk[count].start, upg.blk[count].end);
-			if(i >= upg.blk[count].start && i <= upg.blk[count].end) {
+			if (i >= upg.blk[count].start && i <= upg.blk[count].end) {
 				// if(count_flag[count] == 0)
 				//     printf("Block %d, start=0x%x end=0x%x\n", count, upg.blk[count].start, upg.blk[count].end);
 				// count_flag[count] = 1;
@@ -520,11 +462,11 @@ int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int he
 				// printf("%02X", buffer[i]);
 			}
 		}
-	} else if(inProtocolStyle == _Protocol_V3_) {
+	} else if (inProtocolStyle == _Protocol_V3_) {
 		PRINTF("%s, ap_start_address:0x%06X, ap_end_address:0x%06X, ap_check = 0x%06X\n",
-				__func__, upg.ap_start_addr, upg.ap_end_addr, upg.ap_check);
+		       __func__, upg.ap_start_addr, upg.ap_end_addr, upg.ap_check);
 		PRINTF("%s, df_start_address:0x%06X, df_end_address:0x%06X, df_check = 0x%06X\n",
-				__func__, upg.df_start_addr, upg.df_end_addr, upg.df_check);
+		       __func__, upg.df_start_addr, upg.df_end_addr, upg.df_check);
 		PRINTF("%s, parsing hex file completed\n", __func__);
 	}
 
@@ -773,19 +715,15 @@ int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
 
 	dae_crc = CheckFWCRC(upg.blk[block].start, upg.blk[block].end - 1, buffer);
 	WriteFlashEnable_BL1_8(upg.blk[block].start, upg.blk[block].end);
-	for (i = upg.blk[block].start; i < upg.blk[block].end; i += len) //i += update_len - 1)
-	{
+	for (i = upg.blk[block].start; i < upg.blk[block].end; i += len) {
 		buff[0] = (unsigned char)ILITEK_TP_CMD_WRITE_DATA;
 		for (k = 0; k < len; k++)
-		{
 			buff[1 + k] = buffer[i + k];
-		}
 		//i2c use check busy, usb use ic ack
 		if (inConnectStyle == _ConnectStyle_I2C_) {
 			TransferData(buff, len + 1, NULL, 0, 1000);
 			usleep(5000);
-			if (CheckBusy(40, 50, SYSTEM_BUSY) < 0)
-			{
+			if (CheckBusy(40, 50, SYSTEM_BUSY) < 0) {
 				PRINTF("%s, Write Datas: CheckBusy Failed\n", __func__);
 				return _FAIL;
 			}
@@ -811,13 +749,7 @@ int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
 
 	ic_crc = GetICBlockCrcAddr(upg.blk[block].start, upg.blk[block].end, CRC_GET_FROM_FLASH);
 	printf("%s, Block:%d start:0x%x end:0x%x Real=0x%x,Get=0x%x\n\n", __func__, block, upg.blk[block].start, upg.blk[block].end, dae_crc, ic_crc);
-	if (ic_crc < 0)
-	{
-		PRINTF("%s, WriteAPDatas Last: CheckBusy Failed\n", __func__);
-		return _FAIL;
-	}
-	if (dae_crc != ic_crc)
-	{
+  	if (ic_crc < 0 || dae_crc != ic_crc) {
 		PRINTF("%s, WriteAPData: CheckSum Failed! Real=0x%x,Get=0x%x\n", __func__, dae_crc, ic_crc);
 		return _FAIL;
 	}
@@ -910,18 +842,16 @@ int UpgradeFirmware_Pro1_8(unsigned char *buffer)
 	unsigned int count = 0, update_len = UPGRADE_LENGTH_BLV1_8;
 
 	ret = SetDataLength_V6(update_len);
-	for(count = 0; count < upg.blk_num; count++) {
-		if(upg.blk[count].chk_crc == false)
-		{
-			if(Program_Block_Pro1_8(buffer, count, update_len) < 0) {
+	for (count = 0; count < upg.blk_num; count++) {
+		if (upg.blk[count].chk_crc == false) {
+			if (Program_Block_Pro1_8(buffer, count, update_len) < 0) {
 				PRINTF("%s, Upgrade Block:%d Fail\n", __func__, count);
 				return _FAIL;
 			}
 		}
 	}
 
-	if (ChangeToAPMode() == _FAIL)
-	{
+	if (ChangeToAPMode() == _FAIL) {
 		PRINTF("%s, Change to ap mode failed\n", __func__);
 		return _FAIL;
 	}

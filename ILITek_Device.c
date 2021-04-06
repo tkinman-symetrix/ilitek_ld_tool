@@ -1,4 +1,13 @@
-
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * ILITEK Linux Daemon Tool
+ *
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #include "ILITek_Protocol.h"
 #include "ILITek_CMDDefine.h"
 #include "ILITek_Device.h"
@@ -54,24 +63,15 @@ unsigned int hex_2_dec(char *hex, int len)
 	unsigned int ret = 0, temp = 0;
 	int i, shift = (len - 1) * 4;
 
-	for(i = 0; i < len; shift -= 4, i++)
-	{
-		if((hex[i] >= '0') && (hex[i] <= '9'))
-		{
+	for (i = 0; i < len; shift -= 4, i++) {
+		if ((hex[i] >= '0') && (hex[i] <= '9'))
 			temp = hex[i] - '0';
-		}
 		else if((hex[i] >= 'a') && (hex[i] <= 'f'))
-		{
 			temp = (hex[i] - 'a') + 10;
-		}
 		else if((hex[i] >= 'A') && (hex[i] <= 'F'))
-		{
 			temp = (hex[i] - 'A') + 10;
-		}
 		else
-		{
 			return _FAIL;
-		}
 		ret |= (temp << shift);
 	}
 	return ret;
@@ -117,65 +117,44 @@ int SetConnectStyle(char *argv[])
 	int ret = _SUCCESS;
 	int hidraw_path_idx = 4;
 
-	if(strcmp(argv[2], "I2C") == 0)
-	{
+	if (!strcmp(argv[2], "I2C")) {
 		inConnectStyle=_ConnectStyle_I2C_;
 		strcpy(ILITEK_I2C_CONTROLLER,argv[4]);
 		ILITEK_DEFAULT_I2C_ADDRESS = hex_2_dec(argv[5], 2);
-		if(strcmp(argv[3], "V3") == 0)
-		{
-			inProtocolStyle = _Protocol_V3_;
-		}
-		else if(strcmp(argv[3], "V6") == 0)
-		{
-			inProtocolStyle = _Protocol_V6_;
-		}
-		else
-		{
-			if((strcmp(argv[1], "Console") != 0)&&(strcmp(argv[1], "Script") != 0))
-			{
-				ret = _FAIL;
-			}
-			else
-			{
-				inProtocolStyle = _Protocol_V3_;
-				strcpy(ILITEK_I2C_CONTROLLER,"/dev/ilitek_ctrl");
-				ILITEK_DEFAULT_I2C_ADDRESS = 41;
-			}
-		}
-	}
-	else if(strcmp(argv[2], "USB") == 0)
-	{
-		inConnectStyle = _ConnectStyle_USB_;
-		OTHER_VID = hex_2_dec(argv[5], 4);
-		if(strcmp(argv[3], "V3") == 0)
-		{
-			inProtocolStyle = _Protocol_V3_;
-		}
-		else if(strcmp(argv[3], "V6") == 0)
-		{
-			inProtocolStyle = _Protocol_V6_;
-		}
-		else
-		{
-			if((strcmp(argv[1], "Console") != 0)&&(strcmp(argv[1], "Script") != 0))
-			{
-				ret = _FAIL;
-			}
-			else
-			{
-				inProtocolStyle = _Protocol_V3_;
-			}
-		}
-	}
-	else if (!strcmp(argv[2], "I2C-HID")) {
-		inConnectStyle = _ConnectStyle_I2CHID_;
-
-		if (strcmp(argv[3], "V3") == 0) {
+		if (!strcmp(argv[3], "V3")) {
 			inProtocolStyle = _Protocol_V3_;
 		} else if (strcmp(argv[3], "V6") == 0) {
 			inProtocolStyle = _Protocol_V6_;
-		} else if (strcmp(argv[1], "Console") == 0 || strcmp(argv[1], "Script") == 0) {
+		} else {
+			if (strcmp(argv[1], "Console") && strcmp(argv[1], "Script")) {
+				ret = _FAIL;
+			} else {
+				inProtocolStyle = _Protocol_V3_;
+				strcpy(ILITEK_I2C_CONTROLLER, "/dev/ilitek_ctrl");
+				ILITEK_DEFAULT_I2C_ADDRESS = 41;
+			}
+		}
+	} else if (!strcmp(argv[2], "USB")) {
+		inConnectStyle = _ConnectStyle_USB_;
+		OTHER_VID = hex_2_dec(argv[5], 4);
+		if(!strcmp(argv[3], "V3")) {
+			inProtocolStyle = _Protocol_V3_;
+		} else if (!strcmp(argv[3], "V6")) {
+			inProtocolStyle = _Protocol_V6_;
+		} else {
+			if (strcmp(argv[1], "Console") && strcmp(argv[1], "Script"))
+				ret = _FAIL;
+			else
+				inProtocolStyle = _Protocol_V3_;
+		}
+	} else if (!strcmp(argv[2], "I2C-HID")) {
+		inConnectStyle = _ConnectStyle_I2CHID_;
+
+		if (!strcmp(argv[3], "V3")) {
+			inProtocolStyle = _Protocol_V3_;
+		} else if (!strcmp(argv[3], "V6")) {
+			inProtocolStyle = _Protocol_V6_;
+		} else if (!strcmp(argv[1], "Console") || !strcmp(argv[1], "Script")) {
 			hidraw_path_idx = 3;
 			inProtocolStyle = _Protocol_V3_;
 		} else {
@@ -432,28 +411,27 @@ int OpenI2CDevice()
 
 int InitDevice()
 {
-	int8_t ret = _SUCCESS;
-	if(inConnectStyle==_ConnectStyle_I2C_)
-	{
+	int ret = _SUCCESS;
+
+	if (inConnectStyle == _ConnectStyle_I2C_)
 		ret = OpenI2CDevice();
-	}
 #ifdef CONFIG_ILITEK_USE_LIBUSB
-	else if(inConnectStyle==_ConnectStyle_USB_) {
-		hdev=open_usb_hid_device();
-		if(!hdev)
+	else if (inConnectStyle == _ConnectStyle_USB_) {
+		hdev = open_usb_hid_device();
+		if (!hdev)
 			ret = _FAIL;
 	}
-	else if(inConnectStyle==_ConnectStyle_USBPID_) {
+	else if (inConnectStyle == _ConnectStyle_USBPID_) {
 		hdev=open_usb_hid_device_with_pid();
 		if(!hdev)
 			ret = _FAIL;
 	}
 #endif
-	else if(inConnectStyle==_ConnectStyle_I2CHID_) {
+	else if (inConnectStyle == _ConnectStyle_I2CHID_) {
 		ret = open_hidraw_device();
 	}
 
-	return (int)ret;
+	return ret;
 }
 
 int write_data(int fd, unsigned char *buf, int len)
@@ -504,6 +482,8 @@ int hidraw_read(int fd, uint8_t *buf, int len, int timeout_ms)
 
 	do {
 		ret = read(fd, buf, len);
+		if (ret == len)
+			break;
 		usleep(1000);
 		t_ms += 1000;
 	} while (ret != len && t_ms < timeout_ms);
@@ -522,16 +502,13 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
 		printf("\n");
 	}
 #endif
-	if(inConnectStyle==_ConnectStyle_I2C_)
-	{
-		if(writelen != 0)
-		{
+	if (inConnectStyle==_ConnectStyle_I2C_) {
+		if (writelen != 0) {
 			ret = write_data(fd, OutBuff, writelen);
 			//printf("CMD:0x%x len:%d\n", OutBuff[0], writelen);
 			usleep(inTimeOut);
 		}
-		if(ret >= 0 && readlen != 0)
-		{
+		if(ret >= 0 && readlen != 0) {
 			ret = read_data(fd, InBuff, readlen);
 			//printf("CMD:0x%x len:%d read:%d\n", OutBuff[0], writelen, readlen);
 			if(ret < 0)
@@ -539,15 +516,12 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
 				PRINTF("%s, read command fail, ret=%d\n", __func__, ret);
 				return _FAIL;
 			}
-		}
-		else if (ret < 0)
-		{
+		} else if (ret < 0) {
 			PRINTF("%s, write 0x%x command fail, ret=%d\n", __func__, OutBuff[0],ret);
 			return _FAIL;
 		}
 	} else {
 		uint8_t *WriteBuff = NULL, *ReadBuff = NULL;
-		//bool INTInFlag = true;
 		uint32_t w_report = 0, wlen = 0;
 		uint32_t r_report = 0, rlen = 0;
 
@@ -614,8 +588,7 @@ int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, i
 			WriteBuff[2] = writelen;
 			WriteBuff[3] = readlen;
 			memcpy(WriteBuff + 4, OutBuff, writelen);
-		}
-		else{
+		} else {
 			WriteBuff[0] = w_report & 0xFF;
 			WriteBuff[1] = 0xA3;
 			WriteBuff[2] = writelen & 0xFF;
@@ -636,8 +609,7 @@ WRITE_AGAIN:
 					{
 AGAIN:
 						ret = usb_interrupt_read(hdev, ENDPOINT_IN, (char *)ReadBuff, 64, (inTimeOut+3000));
-						if(ret < 0)
-						{
+						if(ret < 0) {
 #ifdef DEBUG_TRANSFER_DATA
 							PRINTF("%s, CMD:0x%x read command fail\n", __func__, OutBuff[0]);
 #endif
@@ -653,21 +625,16 @@ AGAIN:
 							goto AGAIN;
 						}
 						memcpy(InBuff, ReadBuff + 4, readlen);
-					}
-					else
-					{
+					} else {
 						ret = usb_control_msg(hdev, 0xA1, 0x01, r_report, 0, (char *)ReadBuff, rlen, 10000);
-						if(ret < 0)
-						{
+						if(ret < 0) {
 							PRINTF("%s, read command fail\n", __func__);
 							return _FAIL;
 						}
-						if(r_report == REPORT_ID_64_BYTE) {
+						if(r_report == REPORT_ID_64_BYTE)
 							memcpy(InBuff, ReadBuff + 4, readlen);
-						}
-						else {
+						else
 							memcpy(InBuff, ReadBuff, rlen);
-						}
 					}
 				}
 			} else {
@@ -729,7 +696,6 @@ AGAIN:
 				}
 			}
 		}
-		usleep(3000);
 		free(WriteBuff);
 		free(ReadBuff);
 	}

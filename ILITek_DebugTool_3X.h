@@ -1,10 +1,13 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * ILITek_DebugTool_3X.h
+ * ILITEK Linux Daemon Tool
  *
- *  Created on: 2017��11��9��
- *      Author: jluo
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
  */
-
 #ifndef INC_ILITEK_DEBUGTOOL_3X_H_
 #define INC_ILITEK_DEBUGTOOL_3X_H_
 

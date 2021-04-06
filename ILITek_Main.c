@@ -1,14 +1,13 @@
-/******************** (C) COPYRIGHT 2019 ILI Technology Corp. ********************
- * File Name :   IliTek_Main.c
- * Description   :   Main function
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * ILITEK Linux Daemon Tool
  *
- ********************************************************************************
- *History:
- *   Version        Date           Author            Description
- *   --------------------------------------------------------------------------
- *      1.0       2019/02/15          Randy           Initial version
- *******************************************************************************/
-
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #ifndef _ILITEK_MAIN_C_
 #define _ILITEK_MAIN_C_
 
@@ -42,6 +41,11 @@
 #define CHK_USB(x) ((*(x)=='U') && (*(x+1)=='S') && (*(x+2)=='B'))
 #define MAX_SCRIPT_CMD_SIZE	512
 
+
+#define CHROME_DESC		"Show Info. for ChromeOS"
+//daemon function format	Interface, Protocol, Device, Addr, Ctrl_para1, Ctrl_para2, Ctrl_para3
+#define CHROME_USB	{ "USB", "V3/V6", "null", "null", "", "", "" }
+#define	CHROME_I2C	{ "I2C", "V3/V6", "/dev/ilitek_ctrl", "41", "", "", "" }
 
 #define DEBUG_DESC		"Show ILITEK debug use"
 //daemon function format	Interface, Protocol, Device, Addr, Ctrl_para1, Ctrl_para2, Ctrl_para3
@@ -134,6 +138,7 @@
 //daemon function format	connect IP
 
 /* Private function prototypes -----------------------------------------------*/
+int Func_Chrome(int argc, char *argv[]);
 int Func_Debug(int argc, char *argv[]);
 int Func_PanelInfo(int argc, char *argv[]);
 int Func_RawData(int argc, char *argv[]);
@@ -179,31 +184,41 @@ typedef struct
 
 S_FUNC_MAP au8FuncStrs[] =
 {
-	{"Debug",		    Func_Debug, 		DEBUG_DESC,				{DEBUG_USB, DEBUG_I2C},},
-	{"PanelInfor",	    Func_PanelInfo, 	PANEL_INFOR_DESC,		{PANEL_INFOR_USB, PANEL_INFOR_I2C},},
-	{"RawData", 	    Func_RawData,		RAW_DATA_DESC,			{RAW_DATA_USB, RAW_DATA_I2C},},
-	{"BG-RawData",	    Func_BGRawData, 	BG_RAW_DATA_DESC,		{BG_RAW_DATA_USB, BG_RAW_DATA_I2C},},
-	{"BGData",		    Func_BGData,		BG_DATA_DESC,			{BG_DATA_USB, BG_DATA_I2C},},
-	{"SensorTest",	    Func_SensorTest,	SENSOR_TEST_DESC,		{SENSOR_TEST_USB, SENSOR_TEST_I2C},},
-	{"Frequency",	    Func_Frequency, 	FREQ_DESC,				{FREQ_USB, FREQ_I2C},},
-	{"FWUpgrade",	    Func_FWUpgrade, 	FW_UPDATE_DESC,			{FW_UPDATE_USB, FW_UPDATE_I2C},},
-	{"Console", 	    Func_Console,		CONSOLE_DESC,			{CONSOLE_USB, CONSOLE_I2C},},
-	{"Script",		    Func_Script,		SCRIPT_DESC,			{SCRIPT_USB, SCRIPT_I2C},},
-	{"ControlMode" ,    Func_CtrlMode,	 	CTRL_MODE_DESC,			{CTRL_MODE_USB, CTRL_MODE_I2C},},
-	{"CDC" ,   		 	Func_CDC,		 	CDC_DESC,				{CTRL_MODE_USB, CTRL_MODE_I2C},},
-	{"-exu",		    Func_Exu,			EXC_DESC,				{EXC_USB, EXC_I2C},},
-	{"-cou",		    Func_Cou,			COU_DESC,				{COU_USB, COU_I2C},},
-	{"-fcu",		    Func_Fcu,			FCU_DESC,				{FCU_USB, FCU_I2C},},
-	{"-sru",		    Func_Sru,			SRU_DESC,				{SRU_USB, SRU_I2C},},
-	{"-stu",		    Func_Stu,			STU_DESC,				{STU_USB, STU_I2C},},
-	{"Remote", 		    Func_Remote,		REMOTE_DESC,			{}},
-	{"ReadFlash", 		Func_ReadFlash,		READFLASH_DESC,			{}},
+	{"Chrome",		Func_Chrome,		CHROME_DESC,		{CHROME_USB, CHROME_I2C},},
+	{"Debug",		Func_Debug,		DEBUG_DESC,		{DEBUG_USB, DEBUG_I2C},},
+	{"PanelInfor",		Func_PanelInfo,		PANEL_INFOR_DESC,	{PANEL_INFOR_USB, PANEL_INFOR_I2C},},
+	{"RawData",		Func_RawData,		RAW_DATA_DESC,		{RAW_DATA_USB, RAW_DATA_I2C},},
+	{"BG-RawData",		Func_BGRawData,		BG_RAW_DATA_DESC,	{BG_RAW_DATA_USB, BG_RAW_DATA_I2C},},
+	{"BGData",		Func_BGData,		BG_DATA_DESC,		{BG_DATA_USB, BG_DATA_I2C},},
+	{"SensorTest",		Func_SensorTest,	SENSOR_TEST_DESC,	{SENSOR_TEST_USB, SENSOR_TEST_I2C},},
+	{"Frequency",		Func_Frequency,		FREQ_DESC,		{FREQ_USB, FREQ_I2C},},
+	{"FWUpgrade",		Func_FWUpgrade,		FW_UPDATE_DESC,		{FW_UPDATE_USB, FW_UPDATE_I2C},},
+	{"Console",		Func_Console,		CONSOLE_DESC,		{CONSOLE_USB, CONSOLE_I2C},},
+	{"Script",		Func_Script,		SCRIPT_DESC,		{SCRIPT_USB, SCRIPT_I2C},},
+	{"ControlMode",		Func_CtrlMode,		CTRL_MODE_DESC,		{CTRL_MODE_USB, CTRL_MODE_I2C},},
+	{"CDC" ,		Func_CDC,		CDC_DESC,		{CTRL_MODE_USB, CTRL_MODE_I2C},},
+	{"-exu",		Func_Exu,		EXC_DESC,		{EXC_USB, EXC_I2C},},
+	{"-cou",		Func_Cou,		COU_DESC,		{COU_USB, COU_I2C},},
+	{"-fcu",		Func_Fcu,		FCU_DESC,		{FCU_USB, FCU_I2C},},
+	{"-sru",		Func_Sru,		SRU_DESC,		{SRU_USB, SRU_I2C},},
+	{"-stu",		Func_Stu,		STU_DESC,		{STU_USB, STU_I2C},},
+	{"Remote",		Func_Remote,		REMOTE_DESC,		{},},
+	{"ReadFlash",		Func_ReadFlash,		READFLASH_DESC,		{},},
 };
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
 /* Private functions ---------------------------------------------------------*/
+int Func_Chrome(int argc, char *argv[])
+{
+	int ret = _FAIL;
+
+	if (GetFWVersion() != _FAIL)
+		ret = _SUCCESS;
+	return ret;
+}
+
 int Func_Debug(int argc, char *argv[])
 {
 	return _UNKNOWN;
@@ -214,8 +229,8 @@ int Func_PanelInfo(int argc, char *argv[])
 	int ret = _FAIL;
 
 	if ((inConnectStyle == _ConnectStyle_I2C_ && argc >= 6) ||
-			(inConnectStyle == _ConnectStyle_USB_ && argc >= 4) ||
-			inConnectStyle == _ConnectStyle_I2CHID_)
+	    (inConnectStyle == _ConnectStyle_USB_ && argc >= 4) ||
+	    inConnectStyle == _ConnectStyle_I2CHID_)
 		ret = viGetPanelInfor();
 	return ret;
 }
@@ -262,19 +277,14 @@ int Func_SensorTest(int argc, char *argv[])
 	int ret = _FAIL;
 	int inFunctions = 0;
 
-	if (argc >= 7)
-	{
+	if (argc >= 7) {
 		inFunctions = atoi(argv[6]);
 		if (inProtocolStyle == _Protocol_V6_)
-		{
 			InitialSensorTestV6Parameter();
-		}
 		else if (inProtocolStyle == _Protocol_V3_)
-		{
 			InitialSensorTestV3Parameter();
-		}
-		if (argc == 8 && strcmp(argv[7], "null") != 0)
-		{
+
+		if (argc == 8 && strcmp(argv[7], "null") != 0) {
 			memset(IniPath, 0, sizeof(IniPath));
 			strcpy((char *)IniPath, argv[7]);
 		}
@@ -288,13 +298,13 @@ int Func_Frequency(int argc, char *argv[])
 {
 	int ret = _FAIL;
 
-	if (argc >= 8)
-	{
+	if (argc >= 8) {
 		PRINTF("%s,%d,start:%d,end:%d,step:%d\n", __func__, __LINE__, atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
 		ret = viRunFre(argv);
 	}
 	return ret;
 }
+
 extern int ilitek_fd;
 int Func_FWUpgrade(int argc, char *argv[])
 {
@@ -305,16 +315,12 @@ int Func_FWUpgrade(int argc, char *argv[])
 	filename = (unsigned char *)malloc(UPGRAD_FILE_PATH_SIZE);
 	memset(filename, 0x0, UPGRAD_FILE_PATH_SIZE);
 	switch_irq(0);
-	if (argc >= 7)
-	{
+	if (argc >= 7) {
 		if (argc >= 8)
-		{
 			Version = argv[7];
-		}
-		PRINTF("Hex filename:%s\n", argv[6]);
 		strcat((char *)filename, argv[6]);
 		PRINTF("Hex filename:%s\n", filename);
-		ret = viRunFiremwareUpgrade(filename, Version);
+		ret = viRunFirmwareUpgrade(filename, Version);
 	}
 	free(filename);
 	switch_irq(1);
@@ -426,8 +432,8 @@ int PrintInfor(char *argv[])
 		PRINTF(TOOL_VERSION);
 		ret = _SUCCESS;
 	} else if (strcmp(argv[1], "-h") == 0 ||
-			strcmp(argv[1], "--help") == 0 ||
-			strcmp(argv[1], "-help") == 0) {
+		   strcmp(argv[1], "--help") == 0 ||
+		   strcmp(argv[1], "-help") == 0) {
 		PRINTF("%-20s %s\n", "Test Function", "Function Descriotion");
 		for ( u8ID = 0; u8ID < FUNC_NUM; u8ID++ )
 			PRINTF("%-20s %s\n", au8FuncStrs[u8ID].FuncStrs, au8FuncStrs[u8ID].FuncDesc);
@@ -443,12 +449,12 @@ int viGetPanelInfor_V3()
 	int ret = _FAIL;
 
 	if (GetProtocol() != _FAIL &&
-			GetKernelVer() != _FAIL &&
-			GetFWVersion() != _FAIL &&
-			GetICMode() != _FAIL &&
-			GetCoreVersion() != _FAIL &&
-			GetFWMode() != _FAIL &&
-			PanelInfor_V3() != _FAIL)
+	    GetKernelVer() != _FAIL &&
+	    GetFWVersion() != _FAIL &&
+	    GetICMode() != _FAIL &&
+	    GetCoreVersion() != _FAIL &&
+	    GetFWMode() != _FAIL &&
+	    PanelInfor_V3() != _FAIL)
 		ret = _SUCCESS;
 
 	/* return success if it's BL mode */
@@ -462,12 +468,12 @@ int viGetPanelInfor_V6()
 	int ret = _FAIL;
 
 	if (GetProtocol() != _FAIL &&
-			GetKernelVer() != _FAIL &&
-			GetFWVersion() != _FAIL &&
-			GetICMode() != _FAIL &&
-			GetCoreVersion() != _FAIL &&
-			GetFWMode() != _FAIL &&
-			PanelInfor_V6() != _FAIL)
+	    GetKernelVer() != _FAIL &&
+	    GetFWVersion() != _FAIL &&
+	    GetICMode() != _FAIL &&
+	    GetCoreVersion() != _FAIL &&
+	    GetFWMode() != _FAIL &&
+	    PanelInfor_V6() != _FAIL)
 		ret = _SUCCESS;
 
 	/* return success if it's BL mode */
@@ -528,7 +534,7 @@ int ChangeToBootloader()
 			ret = ChangeTOBL();
 
 			if (inConnectStyle == _ConnectStyle_I2CHID_)
-				usleep(1300000 + count * 100000);
+				usleep(1000000 + count * 100000);
 			else
 				usleep(210000 + count * 20000);
 
@@ -649,15 +655,15 @@ unsigned int get_file_size(char *filename)
 	return size;
 }
 
-int DearlWithFunctions(int argc, char *argv[])
+int DealWithFunctions(int argc, char *argv[])
 {
 	unsigned char u8ID = 0;
 	int ret = _FAIL;
 
 	PRINTF("Para:%s\n", argv[2]);
 
-	for ( u8ID = 0; u8ID < FUNC_NUM; u8ID++ ) {
-		if ( strcmp(argv[1], au8FuncStrs[u8ID].FuncStrs) == 0 ) {
+	for (u8ID = 0; u8ID < FUNC_NUM; u8ID++) {
+		if (!strcmp(argv[1], au8FuncStrs[u8ID].FuncStrs)) {
 			ret = au8FuncStrs[u8ID].pFuncPoint(argc, argv);
 			if (ret == _FAIL)
 				PRINTF("Error! %s Failed!!\n", au8FuncStrs[u8ID].FuncStrs);
@@ -763,28 +769,28 @@ int help_chk(char *argv[])
 	int ret = _FAIL;
 
 	if (strcmp(argv[2], "-h") == 0 ||
-			strcmp(argv[2], "--help") == 0 ||
-			strcmp(argv[2], "-help") == 0) {
+	    strcmp(argv[2], "--help") == 0 ||
+	    strcmp(argv[2], "-help") == 0) {
 		for ( u8ID = 0; u8ID < FUNC_NUM; u8ID++ ) {
 			if (strcmp(argv[1], au8FuncStrs[u8ID].FuncStrs) == 0) {
 				PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-						"----------------", "----------------", "----------------", "----------------",
-						"----------------", "----------------", "----------------", "----------------");
+				       "----------------", "----------------", "----------------", "----------------",
+				       "----------------", "----------------", "----------------", "----------------");
 				PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-						"Function", "Interface", "Protocol", "Device", "I2C address",
-						"Ctrl param1", "Ctrl param2", "Ctrl param3");
+				       "Function", "Interface", "Protocol", "Device", "I2C address",
+				       "Ctrl param1", "Ctrl param2", "Ctrl param3");
 				PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-						"----------------", "----------------", "----------------", "----------------",
-						"----------------", "----------------", "----------------", "----------------");
+				       "----------------", "----------------", "----------------", "----------------",
+				       "----------------", "----------------", "----------------", "----------------");
 				for (u8i=0;u8i<INTERFACE_NUM;u8i++) {
 					PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-							au8FuncStrs[u8ID].FuncStrs, au8FuncStrs[u8ID].Para[u8i].Interface,
-							au8FuncStrs[u8ID].Para[u8i].Protocol, au8FuncStrs[u8ID].Para[u8i].Device,
-							au8FuncStrs[u8ID].Para[u8i].Addr, au8FuncStrs[u8ID].Para[u8i].Ctrl_para1,
-							au8FuncStrs[u8ID].Para[u8i].Ctrl_para2, au8FuncStrs[u8ID].Para[u8i].Ctrl_para3);
+					       au8FuncStrs[u8ID].FuncStrs, au8FuncStrs[u8ID].Para[u8i].Interface,
+					       au8FuncStrs[u8ID].Para[u8i].Protocol, au8FuncStrs[u8ID].Para[u8i].Device,
+					       au8FuncStrs[u8ID].Para[u8i].Addr, au8FuncStrs[u8ID].Para[u8i].Ctrl_para1,
+					       au8FuncStrs[u8ID].Para[u8i].Ctrl_para2, au8FuncStrs[u8ID].Para[u8i].Ctrl_para3);
 					PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-							"----------------", "----------------", "----------------", "----------------",
-							"----------------", "----------------", "----------------", "----------------");
+					       "----------------", "----------------", "----------------", "----------------",
+					       "----------------", "----------------", "----------------", "----------------");
 				}
 				ret = _SUCCESS;
 				break;
@@ -1074,12 +1080,7 @@ int main(int argc, char *argv[])
 {
 	int ret = _FAIL;
 	unsigned char u8i=0;
-	// basetime = tv.tv_sec;
-	// gettimeofday(&tv , &tz);
-	// basetime = tv.tv_sec;
 
-	// gettimeofday(&tv , &tz);
-	// printf("main start time:%lu.%d\n", tv.tv_sec - basetime, tv.tv_usec);
 	if (PrintInfor(argv) == _SUCCESS) {
 		ret = _SUCCESS;
 	} else if (help_chk(argv) == _SUCCESS) {
@@ -1101,15 +1102,17 @@ int main(int argc, char *argv[])
 	} else if (SetConnectStyle(argv) == _SUCCESS) {
 		if (InitDevice() == _SUCCESS) {
 			switch_irq(0);
-			if (strcmp(argv[1], "Console") != 0)
+			if (strcmp(argv[1], "Console") &&
+			    strcmp(argv[1], "Crome"))
 				viEnterTestMode();
 
-			if (DearlWithFunctions(argc, argv) == _FAIL)
+			if (DealWithFunctions(argc, argv) == _FAIL)
 				ret = _FAIL;
 			else
 				ret = _SUCCESS;
 
-			if (strcmp(argv[1], "Console") != 0) {
+			if (strcmp(argv[1], "Console") &&
+			    strcmp(argv[1], "Crome")) {
 				viExitTestMode();
 				if (inConnectStyle != _ConnectStyle_I2CHID_)
 					software_reset();
@@ -1120,8 +1123,7 @@ int main(int argc, char *argv[])
 		} else {
 			PRINTF("InitDevice Error\n");
 		}
-	} else if (strcmp(argv[1], "Debug") == 0)
-	{
+	} else if (strcmp(argv[1], "Debug") == 0) {
 		if (argc >= 7)
 			vfRunDebug_3X(argv[2], atoi(argv[6]));
 		else

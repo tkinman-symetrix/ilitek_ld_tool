@@ -1,4 +1,13 @@
-
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * ILITEK Linux Daemon Tool
+ *
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #include "ILITek_Device.h"
 #include "ILITek_CMDDefine.h"
 #include "ILITek_Protocol.h"
@@ -10,7 +19,7 @@ int PanelInfor_V6()
 	int ret=0;
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
-	Wbuff[0] = (unsigned char)ILITEK_TP_CMD_GET_RESOLUTION;
+	Wbuff[0] = (uint8_t)ILITEK_TP_CMD_GET_RESOLUTION;
 	ret = TransferData(Wbuff, 1, Rbuff, 0xF,1000);
 	ptl.x_max = ((uint32_t)Rbuff[1]) * 256 + Rbuff[0];
 	ptl.y_max = ((uint32_t)Rbuff[3]) * 256 + Rbuff[2];
@@ -20,18 +29,19 @@ int PanelInfor_V6()
 		ptl.key_num = Rbuff[9];
 	ptl.ic_num = Rbuff[10];
 	ptl.mode_num = Rbuff[11];
-	if(ptl.ver > PROTOCOL_V6_0_2) {
+
+	if (ptl.ver > PROTOCOL_V6_0_2) {
 		ptl.block_num = Rbuff[14];
 		PRINTF("%s, max_x=%u, max_y=%u, xch=%u, ych=%u, IC Number:%d, Key Number:%d, Block Number:%d, Support Mode:%d, ret=%d\n",
 				__func__, ptl.x_max,ptl.y_max, ptl.x_ch, ptl.y_ch, ptl.ic_num, ptl.key_num, ptl.block_num, ptl.mode_num, ret);
-	}
-	else {
+	} else {
 		PRINTF("%s, max_x=%u, max_y=%u, xch=%u, ych=%u, IC Number:%d, Key Number:%d, Support Mode:%d ret=%d\n", __func__, ptl.x_max,
 				ptl.y_max, ptl.x_ch, ptl.y_ch, ptl.ic_num, ptl.key_num, ptl.mode_num, ret);
 	}
-	if (ptl.key_num > 0) {
+
+	if (ptl.key_num > 0)
 		ret = GetKeyInfor_V6(ptl.key_num);
-	}
+
 	return ret;
 }
 
@@ -54,10 +64,10 @@ int SetDataLength_V6(uint32_t data_len)
 	int ret=0;
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
-	Wbuff[0]=(unsigned char)ILITEK_TP_CMD_SET_DATA_LENGTH;
+	Wbuff[0] = (uint8_t)ILITEK_TP_CMD_SET_DATA_LENGTH;
 	Wbuff[1] = (uint8_t)(data_len & 0xFF);
 	Wbuff[2] = (uint8_t)(data_len >> 8);
-	ret=TransferData(Wbuff, 3, Rbuff, 0, 1000);
+	ret = TransferData(Wbuff, 3, Rbuff, 0, 1000);
 
 	PRINTF("%s, Set data length:%d, ret=%u\n", __func__, data_len, ret);
 	return ret;
@@ -97,7 +107,7 @@ uint32_t GetICBlockCrcAddr(uint32_t start, uint32_t end, uint32_t type)
 	uint32_t crc = 0;
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 	Wbuff[0] = ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_ADDR;
-	if(type) {
+	if (type) {
 		Wbuff[1] = 0;
 		Wbuff[2] = start;
 		Wbuff[3] = (start >> 8) & 0xFF;
@@ -127,7 +137,7 @@ uint32_t GetICBlockCrcAddr(uint32_t start, uint32_t end, uint32_t type)
 		//return _SUCCESS;
 	}
 	Wbuff[1] = 1;
-	if(TransferData(Wbuff, 2, Rbuff, 2, 1000) < 0)
+	if (TransferData(Wbuff, 2, Rbuff, 2, 1000) < 0)
 		return _FAIL;
 	crc = Rbuff[0]+(Rbuff[1] << 8);
 	//PRINTF("%s, Block CRC=0x%x,ret=%u\n", __func__, crc, ret);
@@ -237,32 +247,24 @@ int ModeCtrl_V6(uint8_t mode, uint8_t engineer)
 	int ret = _FAIL;
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
-	Wbuff[0]=(uint8_t)ILITEK_TP_CMD_SET_MODE_CONTORL;
-	Wbuff[1]=mode;
-	Wbuff[2]=engineer; //daemon no need engineer mode
+	Wbuff[0] = (uint8_t)ILITEK_TP_CMD_SET_MODE_CONTORL;
+	Wbuff[1] = mode;
+	Wbuff[2] = engineer; //daemon no need engineer mode
 	ret = TransferData(Wbuff, 3, Rbuff, 0, 1000);
 	usleep(100000);
 	switch(mode) {
-		case ENTER_NORMAL_MODE:
-			{
-				PRINTF("Change to Normal mode:");
-				break;
-			}
-		case ENTER_DEBUG_MODE:
-			{
-				PRINTF("Change to Debug mode:");
-				break;
-			}
-		case ENTER_SUSPEND_MODE:
-			{
-				PRINTF("Change to Suspend mode:");
-				break;
-			}
-		case ENTER_TEST_MODE:
-			{
-				PRINTF("Change to Test mode:");
-				break;
-			}
+	case ENTER_NORMAL_MODE:
+		PRINTF("Change to Normal mode:");
+		break;
+	case ENTER_DEBUG_MODE:
+		PRINTF("Change to Debug mode:");
+		break;
+	case ENTER_SUSPEND_MODE:
+		PRINTF("Change to Suspend mode:");
+		break;
+	case ENTER_TEST_MODE:
+		PRINTF("Change to Test mode:");
+		break;
 	}
 	usleep(200000);
 	if(ret < _SUCCESS) {

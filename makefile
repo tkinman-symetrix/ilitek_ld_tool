@@ -44,7 +44,6 @@ all: $(objects)
 	$(CXX) $^ $(CXXFLAGS) $(LIB_FLAGS) -o $(program)
 	@chmod 777 $(program)
 
-
 %.o: %.cpp
 	$(CXX) -c $< $(CXXFLAGS) $(LIB_FLAGS)
 

@@ -1,15 +1,13 @@
-
-/******************** (C) COPYRIGHT 2019 ILI Technology Corp. ********************
- * File Name :   IliTek_Upgrade.h
- * Description   :   Header for IliTek_Upgrade.c file
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ * ILITEK Linux Daemon Tool
  *
- ********************************************************************************
- *History:
- *   Version        Date           Author            Description
- *   --------------------------------------------------------------------------
- *      1.0       2019/02/15          Randy           Initial version
- *******************************************************************************/
-
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #ifndef _ILITEK_UPGRADE_H_
 #define _ILITEK_UPGRADE_H_
 #include <stdbool.h>
@@ -77,7 +75,7 @@ extern struct UPGRADE_DATA upg;
 /* Extern functions ---------------------------------------------------------*/
 
 int viCheckFWNeedUpgrade(char *cFWVersion);
-int viRunFiremwareUpgrade(unsigned char *filename, char *cFWVersion);
+int viRunFirmwareUpgrade(unsigned char *filename, char *cFWVersion);
 int FiremwareUpgrade(unsigned char *filename);
 int UpgradeFirmware_Pro1_8(unsigned char *filename);
 int UpgradeFirmware_Pro1_7(unsigned char *filename);

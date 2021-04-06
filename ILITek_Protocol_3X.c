@@ -1,4 +1,13 @@
-
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * ILITEK Linux Daemon Tool
+ *
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #include "ILITek_Device.h"
 #include "ILITek_CMDDefine.h"
 #include "ILITek_Protocol.h"
@@ -13,12 +22,10 @@ int software_reset()
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
 	Wbuff[0] = (uint8_t)ILITEK_TP_CMD_SOFTWARE_RESET;
-	if(inProtocolStyle == _Protocol_V3_) {
+	if (inProtocolStyle == _Protocol_V3_)
 		ret = TransferData(Wbuff, 1, Rbuff, 0, 300000);
-	}
-	else {
+	else
 		ret = TransferData(Wbuff, 1, Rbuff, 0, 1000000);
-	}
 	PRINTF("%s\n",__func__);
 
 	if(ret == _FAIL)
@@ -36,9 +43,8 @@ int GetCoreVersion()
 	Wbuff[0] = (uint8_t)ILITEK_TP_CMD_GET_INTERNAL_VERSION;
 	ret=TransferData(Wbuff, 1, Rbuff, 7, 1000);
 	for(count = 0; count < 7; count++)
-	{
 		CoreVersion[count] = Rbuff[count];
-	}
+
 	PRINTF("CoreVersion=0x%X.0x%X.0x%X.0x%X\n", CoreVersion[0], CoreVersion[1], CoreVersion[2], CoreVersion[3]);
 
 	return ret;
@@ -52,9 +58,7 @@ int GetFWVersion()
 	Wbuff[0]=(uint8_t)ILITEK_TP_CMD_GET_FIRMWARE_VERSION;
 	ret=TransferData(Wbuff, 1, Rbuff, 8, 1000);
 	for(count=0; count<8; count++)
-	{
 		FWVersion[count]=Rbuff[count];
-	}
 	PRINTF("%s, firmware version: 0x%02X.0x%02X.0x%02X.0x%02X.0x%02X.0x%02X.0x%02X.0x%02X, ret=%u\n", __func__, FWVersion[0], FWVersion[1], FWVersion[2], FWVersion[3], FWVersion[4], FWVersion[5], FWVersion[6], FWVersion[7],ret);
 
 	/* Chromebook script used, should be checked with Joe */
@@ -73,9 +77,8 @@ int GetProtocol()
 	Wbuff[0]=(uint8_t)ILITEK_TP_CMD_GET_PROTOCOL_VERSION;
 	ret=TransferData(Wbuff, 1, Rbuff, 3,1000);
 	for(count=0; count<3; count++)
-	{
 		ProtocolVersion[count]=Rbuff[count];
-	}
+
 	ptl.ver = (Rbuff[0] << 16) + (Rbuff[1] << 8) + Rbuff[2];
 	PRINTF("%s, ProtocolVersion: %x.%x.%x, 0x%x, ret=%u\n", __func__, ProtocolVersion[0], ProtocolVersion[1], ProtocolVersion[2], ptl.ver, ret);
 
@@ -124,13 +127,12 @@ int GetFWMode()
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
 
 	Wbuff[0]=(uint8_t)ILITEK_TP_CMD_SWITCH_MODE;
-	if(TransferData(Wbuff, 1, Rbuff, 3, 1000) < 0) {
+	if (TransferData(Wbuff, 1, Rbuff, 3, 1000) < 0)
 		return _FAIL;
-	}
+
 	memcpy(ptl.mode, Rbuff, 3);
-	if(Rbuff[2] == 0xFF) {
+	if (Rbuff[2] == 0xFF)
 		PRINTF("%s, FW Mode: no support\n", __func__);
-	}
 	else
 		PRINTF("%s, FW Mode: 0x%02X\n", __func__, ptl.mode[2]);
 	return _SUCCESS;

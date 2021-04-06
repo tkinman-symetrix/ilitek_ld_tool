@@ -1,3 +1,13 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ * ILITEK Linux Daemon Tool
+ *
+ * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
+ * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
+ *
+ * The code could be used by anyone for any purpose, 
+ * and could perform firmware update for ILITEK's touch IC.
+ */
 #ifndef INC_ILITEK_DEVICE_H_
 #define INC_ILITEK_DEVICE_H_
 #include <stdint.h>
@@ -35,10 +45,10 @@ typedef struct _ILIUSB_DEVICE_
 //#define DEBUG_TRANSFER_DATA
 typedef struct _SLAVE_INFO_
 {
-	int	CRC_Code_1;
+	int CRC_Code_1;
 	int CRC_Code_2;
 	int FW_Ver_1;
-	int	FW_Ver_2;
+	int FW_Ver_2;
 } SLAVE_INFO;
 
 extern int inConnectStyle;
