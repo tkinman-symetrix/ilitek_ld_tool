@@ -172,7 +172,7 @@ typedef struct
 	char Ctrl_para1[FUNC_CMD_LEN];
 	char Ctrl_para2[FUNC_CMD_LEN];
 	char Ctrl_para3[FUNC_CMD_LEN];
-}S_PARA;
+} S_PARA;
 
 typedef struct
 {
@@ -214,8 +214,12 @@ int Func_Chrome(int argc, char *argv[])
 {
 	int ret = _FAIL;
 
+	if (viSetTestMode(true))
+		return _FAIL;
 	if (GetFWVersion() != _FAIL)
 		ret = _SUCCESS;
+	if (viSetTestMode(false))
+		return _FAIL;
 	return ret;
 }
 
@@ -502,6 +506,26 @@ int viExitTestMode()
 		ret = ExitTestMode();
 	else if (inProtocolStyle == _Protocol_V6_)
 		ret = ModeCtrl_V6(ENTER_NORMAL_MODE, DISABLE_ENGINEER);
+	return ret;
+}
+
+int viSetTestMode(bool setTest)
+{
+	int ret = _FAIL;
+
+	if (inProtocolStyle == _Protocol_V3_) {
+		if (setTest)
+			ret = EnterTestMode();
+		else
+			ret = ExitTestMode();
+	} else if (inProtocolStyle == _Protocol_V6_) {
+		if (setTest)
+			ret = ModeCtrl_V6_nowait(ENTER_SUSPEND_MODE,
+						 ENABLE_ENGINEER);
+		else
+			ret = ModeCtrl_V6_nowait(ENTER_NORMAL_MODE,
+						 DISABLE_ENGINEER);
+	}
 	return ret;
 }
 
@@ -1103,7 +1127,7 @@ int main(int argc, char *argv[])
 		if (InitDevice() == _SUCCESS) {
 			switch_irq(0);
 			if (strcmp(argv[1], "Console") &&
-			    strcmp(argv[1], "Crome"))
+			    strcmp(argv[1], "Chrome"))
 				viEnterTestMode();
 
 			if (DealWithFunctions(argc, argv) == _FAIL)
@@ -1112,7 +1136,7 @@ int main(int argc, char *argv[])
 				ret = _SUCCESS;
 
 			if (strcmp(argv[1], "Console") &&
-			    strcmp(argv[1], "Crome")) {
+			    strcmp(argv[1], "Chrome")) {
 				viExitTestMode();
 				if (inConnectStyle != _ConnectStyle_I2CHID_)
 					software_reset();

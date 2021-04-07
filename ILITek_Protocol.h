@@ -80,6 +80,7 @@ extern int SetAccessSlave(int number, uint8_t type);
 extern uint32_t GetAPCRC(int number);
 extern int Program_Slave_Pro1_8(uint8_t *buffer, int block, uint32_t len);
 extern int ModeCtrl_V6(uint8_t mode, uint8_t engineer);
+extern int ModeCtrl_V6_nowait(uint8_t mode, uint8_t engineer);
 //-------------------------------BL V1.8----------------------------------
 extern int WriteFlashEnable_BL1_8(unsigned int start,unsigned int end);
 extern int WriteSlaveFlashEnable_BL1_8(uint32_t start,uint32_t end);

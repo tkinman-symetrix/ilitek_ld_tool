@@ -275,6 +275,19 @@ int ModeCtrl_V6(uint8_t mode, uint8_t engineer)
 	return _SUCCESS;
 }
 
+int ModeCtrl_V6_nowait(uint8_t mode, uint8_t engineer)
+{
+	uint8_t Wbuff[64] = {0};
+
+	Wbuff[0] = (uint8_t)ILITEK_TP_CMD_SET_MODE_CONTORL;
+	Wbuff[1] = mode;
+	Wbuff[2] = engineer; //daemon no need engineer mode
+
+	if (TransferData(Wbuff, 3, NULL, 0, 1000) < _SUCCESS)
+		return _FAIL;
+	return _SUCCESS;
+}
+
 int GetSlaveICMode_V6(int number)
 {
 	int i=0;

@@ -20,6 +20,7 @@ int DealWithFunctions(int argc, char *argv[]);
 int viGetPanelInfor();
 int viExitTestMode();
 int viEnterTestMode();
+int viSetTestMode(bool setTest);
 int viSwitchMode(int mode);
 int32_t GetFlashData_V6(uint32_t start, uint32_t len, char *path);
 int viRemote(char *argv[]);
