@@ -88,4 +88,5 @@ extern int write_data(int fd, unsigned char *buf, int len);
 extern int read_data(int fd, unsigned char *buf, int len);
 extern int switch_irq(int flag);
 extern void viDriverCtrlReset();
+extern int viWaitAck(uint8_t cmd, int inTimeOut);
 #endif

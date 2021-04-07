@@ -119,15 +119,15 @@ uint32_t GetICBlockCrcAddr(uint32_t start, uint32_t end, uint32_t type)
 			if(TransferData(Wbuff, 8, Rbuff, 0, 1000) < 0)
 				return _FAIL;
 
-			if (CheckBusy(50, 50, SYSTEM_BUSY) < 0)
-			{
+			if (CheckBusy(50, 50, SYSTEM_BUSY) < 0) {
 				PRINTF("%s, Last: CheckBusy Failed\n", __func__);
 				return _FAIL;
 			}
 		} else if (inConnectStyle == _ConnectStyle_I2CHID_) {
 			if (TransferData(Wbuff, 8, Rbuff, 0, 1000) < 0)
 				return _FAIL;
-
+			if (viWaitAck(Wbuff[0], 1500000) < 0)
+				return _FAIL;
 		} else {
 			if (TransferData(Wbuff, 8, Rbuff, 1, 1000) < 0) {
 				PRINTF("%s, Last: Check IC Ack Failed\n", __func__);
@@ -164,6 +164,8 @@ uint32_t GetICBlockCrcNum(uint32_t block, uint32_t type)
 			}
 		} else if (inConnectStyle == _ConnectStyle_I2CHID_) {
 			if(TransferData(Wbuff, 3, Rbuff, 0, 1000) < 0)
+				return _FAIL;
+			if (viWaitAck(Wbuff[0], 1500000) < 0)
 				return _FAIL;
 		} else {
 			if(TransferData(Wbuff, 3, Rbuff, 1, 1000) < 0) {
@@ -336,6 +338,8 @@ int SetAccessSlave(int number, uint8_t type)
 		}
 	} else if (inConnectStyle == _ConnectStyle_I2CHID_) {
 		if(TransferData(Wbuff, 3, Rbuff, 0, 1000) < 0)
+			return _FAIL;
+		if (viWaitAck(Wbuff[0], 1500000) < 0)
 			return _FAIL;
 	} else {
 		if(TransferData(Wbuff, 3, Rbuff, 1, 1000) < 0) {

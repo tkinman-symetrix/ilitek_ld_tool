@@ -473,7 +473,7 @@ int read_data(int fd, unsigned char *buf, int len)
 	return ret;
 }
 
-int hidraw_read(int fd, uint8_t *buf, int len, int timeout_ms)
+int hidraw_read(int fd, uint8_t *buf, int len, int timeout_ms, uint8_t cmd)
 {
 	int ret = 0, t_ms = 0;
 
@@ -482,12 +482,15 @@ int hidraw_read(int fd, uint8_t *buf, int len, int timeout_ms)
 
 	do {
 		ret = read(fd, buf, len);
-		if (ret == len)
-			break;
+		if (ret == len &&
+		    buf[0] == 0x03 &&
+		    buf[1] == 0xA3 &&
+		    buf[2] == cmd)
+			return _SUCCESS;
 		usleep(1000);
 		t_ms += 1000;
-	} while (ret != len && t_ms < timeout_ms);
-	return (ret == len) ? _SUCCESS : _FAIL;
+	} while (t_ms < timeout_ms);
+	return _FAIL;
 }
 
 int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, int inTimeOut)
@@ -645,13 +648,11 @@ AGAIN:
 			}
 		}
 #endif
-		if (inConnectStyle==_ConnectStyle_I2CHID_) {
+		if (inConnectStyle == _ConnectStyle_I2CHID_) {
 			if (writelen == 0 || ioctl(fd, HIDIOCSFEATURE(wlen), WriteBuff) > 0) {
 				if (readlen > 0) {
-					usleep(1000);
-
 					if (r_report == REPORT_ID_64_BYTE) {
-						ret = hidraw_read(fd, ReadBuff, 64, inTimeOut + 100000);
+						ret = hidraw_read(fd, ReadBuff, 64, inTimeOut + 100000, OutBuff[0]);
 					} else {
 						ReadBuff[0] = r_report & 0xFF; // Must set report ID
 						ret = ioctl(fd, HIDIOCGFEATURE(rlen), ReadBuff);
@@ -666,28 +667,6 @@ AGAIN:
 						memcpy(InBuff, ReadBuff + 4, readlen);
 					else
 						memcpy(InBuff, ReadBuff, readlen);
-				}
-				/* Cmd needs to wait Ack */
-				else if (OutBuff[0] == ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_ADDR ||
-					 OutBuff[0] == ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_NUM ||
-					 OutBuff[0] == ILITEK_TP_CMD_ACCESS_SLAVE ||
-					 OutBuff[0] == ILITEK_TP_CMD_SET_CDC_INITOAL_V6 ||
-					 OutBuff[0] == ILITEK_TP_CMD_WRITE_DATA ||
-					 OutBuff[0] == ILITEK_TP_CMD_GET_CDC_DATA_V6) {
-					int i = 0, retryCnt = 5;
-
-					for (i = 0; i < retryCnt; i++) {
-						ret = hidraw_read(fd, ReadBuff, 64, inTimeOut + 1500000);
-						if (ReadBuff[2] == OutBuff[0] &&
-								ReadBuff[4] == 0xAC)
-							break;
-						PRINTF("[%s] Wait Ack failed(%d/%d) for %#x, ret = %d\n", __func__, i, retryCnt, OutBuff[0], ret);
-						usleep(10000);
-					}
-					if (i == retryCnt) {
-						PRINTF("[%s] Wait Ack failed(%d/%d) for %#x\n", __func__, i, retryCnt, OutBuff[0]);
-						return _FAIL;
-					}
 				}
 			} else {
 				if (OutBuff[0] != ILITEK_TP_CMD_SOFTWARE_RESET) {
@@ -712,9 +691,8 @@ AGAIN:
 
 void CloseDevice()
 {
-	if(inConnectStyle==_ConnectStyle_I2C_ ||
-			inConnectStyle==_ConnectStyle_I2CHID_)
-	{
+	if (inConnectStyle==_ConnectStyle_I2C_ ||
+	    inConnectStyle==_ConnectStyle_I2CHID_) {
 		close(fd);
 	}
 #ifdef CONFIG_ILITEK_USE_LIBUSB
@@ -748,3 +726,22 @@ void viDriverCtrlReset()
 	PRINTF("Set Driver ioctl reset TP\n");
 	ioctl(fd, ILITEK_IOCTL_SET_RESET, 0);
 }
+
+/* Default wait ack timeout should be 1500000 us */
+int viWaitAck(uint8_t cmd, int inTimeOut)
+{
+	int i = 0, retryCnt = 5;
+	uint8_t ReadBuff[64];
+
+	do {
+		hidraw_read(fd, ReadBuff, 64, inTimeOut, cmd);
+		if (ReadBuff[4] == 0xAC)
+			return _SUCCESS;
+		++i;
+		PRINTF("%s fail (%d/%d), for cmd:%x\n",
+		       __func__, i, retryCnt, cmd);
+		usleep(10000);
+	} while (i <= retryCnt);
+	return _FAIL;
+}
+

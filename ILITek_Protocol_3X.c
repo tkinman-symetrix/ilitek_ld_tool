@@ -405,16 +405,19 @@ int EraseDataFlash()
 	int ret=0;
 	uint8_t Wbuff[64] = {0xFF};
 
-	if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] == 0x07)
-	{
+	if (ProtocolVersion[0] == 0x01 && ProtocolVersion[1] == 0x07) {
 		//25
 		memset(Wbuff, 0xFF,33);
 		ret = WriteDataFlashKey(0x1F01F, 0xFF*32);
 		usleep(10000);
 		Wbuff[0] = (unsigned char)ILITEK_TP_CMD_WRITE_DATA;
 		ret = TransferData(Wbuff, 33, NULL, 0, 1000);
-	}
-	else {
+
+		if (inConnectStyle == _ConnectStyle_I2CHID_) {
+			if (viWaitAck(Wbuff[0], 1500000) < 0)
+				return _FAIL;
+		}
+	} else {
 		ret = SetProgramKey();
 		usleep(100000);
 		Wbuff[0] = 0x63;

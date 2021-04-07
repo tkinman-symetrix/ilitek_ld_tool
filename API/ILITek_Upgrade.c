@@ -496,14 +496,16 @@ int UpgradeFirmware_Pro1_6(unsigned char *buffer)
 		}
 		ret = TransferData(buff, 33, NULL, 0, 1000);
 
+		if (inConnectStyle == _ConnectStyle_I2CHID_) {
+			if (viWaitAck(buff[0], 1500000) < 0)
+				return _FAIL;
+		}
+
 		if ((j % (16)) == 0)
-		{
 			usleep(50000);
-		}
 		else
-		{
 			usleep(3000);
-		}
+
 		++j;
 		printf("%c", 0x0D);
 		PRINTF("ILITEK: Firmware Upgrade(data code), %02d%c. ", ((i - upg.df_start_addr) * 100) / (upg.df_end_addr - upg.df_start_addr), '%');
@@ -536,14 +538,17 @@ int UpgradeFirmware_Pro1_6(unsigned char *buffer)
 			APdataChSum += buff[1 + k];
 		}
 		ret = TransferData(buff, 33, NULL, 0, 1000);
+
+		if (inConnectStyle == _ConnectStyle_I2CHID_) {
+			if (viWaitAck(buff[0], 1500000) < 0)
+				return _FAIL;
+		}
+
 		if ((j % (16)) == 0)
-		{
 			usleep(50000);
-		}
 		else
-		{
 			usleep(3000);
-		}
+
 		++j;
 		printf("%c", 0x0D);
 		PRINTF("ILITEK: Firmware Upgrade(ap code), %02d%c. ", (i * 100) / upg.ap_end_addr, '%');
@@ -603,6 +608,11 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
 			}
 		}
 		TransferData(buff, 33, NULL, 0, 1000);
+		if (inConnectStyle == _ConnectStyle_I2CHID_) {
+			if (viWaitAck(buff[0], 1500000) < 0)
+				return _FAIL;
+		}
+		
 		usleep(5000);
 		if (CheckBusy(10, 10, NO_NEED) < 0)
 		{
@@ -657,6 +667,11 @@ int UpgradeFirmware_Pro1_7(unsigned char *buffer)
 			buff[1 + k] = buffer[i + k];
 		}
 		TransferData(buff, 33, NULL, 0, 1000);
+		if (inConnectStyle == _ConnectStyle_I2CHID_) {
+			if (viWaitAck(buff[0], 1500000) < 0)
+				return _FAIL;
+		}
+
 		usleep(5000);
 		if (CheckBusy(10, 10, NO_NEED) < 0)
 		{
@@ -729,6 +744,8 @@ int Program_Block_Pro1_8(uint8_t *buffer, int block, uint32_t len) {
 			}
 		} else if (inConnectStyle == _ConnectStyle_I2CHID_) {
 			if (TransferData(buff, len + 1, Rbuff, 0, 1000000) < 0)
+				return _FAIL;
+			if (viWaitAck(buff[0], 1500000) < 0)
 				return _FAIL;
 		} else {
 			//gettimeofday(&tv , &tz);

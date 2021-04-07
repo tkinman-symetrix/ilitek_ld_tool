@@ -506,6 +506,8 @@ int viInitRawData_6X(unsigned char cmd, int delay_count)
 	} else if (inConnectStyle == _ConnectStyle_I2CHID_) {
 		if (TransferData(Wbuff, 2, Rbuff, 0, 1000) < 0)
 			return _FAIL;
+		if (viWaitAck(Wbuff[0], 1500000) < 0)
+			return _FAIL;
 	} else {
 		if (TransferData(Wbuff, 2, Rbuff, 1, 1000) < 0) {
 			PRINTF("%s, CDC Initial: USB no ack\n", __func__);
@@ -656,19 +658,20 @@ int viGetRawData_6X(unsigned int d_len)
 		uiReadCounts = t_len + header;
 		Wbuff[0] = ILITEK_TP_CMD_GET_CDC_DATA_V6;
 		if (inConnectStyle==_ConnectStyle_USB_) {
-			ret=TransferData(Wbuff, 1, Rbuff, 1, 10000);
-			ret=TransferData(Wbuff, 0, Rbuff, t_len, 1000);
+			ret = TransferData(Wbuff, 1, Rbuff, 1, 10000);
+			ret = TransferData(Wbuff, 0, Rbuff, t_len, 1000);
 		} else if (inConnectStyle==_ConnectStyle_I2CHID_) {
 			// check ack, so read len set as 0
-			ret=TransferData(Wbuff, 1, Rbuff, 0, 10000);
-			ret=TransferData(Wbuff, 0, Rbuff, t_len, 1000);
+			ret = TransferData(Wbuff, 1, Rbuff, 0, 10000);
+			if (viWaitAck(buff[0], 1500000) < 0)
+				return _FAIL;
+			ret = TransferData(Wbuff, 0, Rbuff, t_len, 1000);
 		} else {
 			ret = CheckBusy(300, 10, NO_NEED);
-			ret=TransferData(Wbuff, 1, Rbuff, uiReadCounts, 1000);
+			ret = TransferData(Wbuff, 1, Rbuff, uiReadCounts, 1000);
 		}
 
-		if (ret < 0)
-		{
+		if (ret < 0) {
 			PRINTF("Error! Read Data error \n");
 			free(p_s16Data);
 			free(Rbuff);
