@@ -1,10 +1,10 @@
-This is a firmware update tool for ILITEK touchscreen
+**This is a firmware update tool for ILITEK touchscreen**
 
-How to build (TBU):
+**How to build (TBU):**
 
-How to run (TBU):
+**How to run (TBU):**
 
-How to perform a Firmware Update
+**How to perform a Firmware Update:**
 1. put ILITEK firmware update tool "ilitek_ld" into target system, and under executable path like /usr/local/.
 2. check Hex firmware is ready and accessable in target system.
 3. type command as below, please read following description for each argument.
