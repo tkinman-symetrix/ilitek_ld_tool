@@ -5,9 +5,10 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
+
 #ifndef _ILITEK_FREQUENCY_H_
 #define _ILITEK_FREQUENCY_H_
 

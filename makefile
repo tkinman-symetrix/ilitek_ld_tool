@@ -4,14 +4,16 @@
 
 program := ilitek_ld
 objects := ILITek_Main.c \
+	   ILITek_Wifi.c \
 	   ILITek_Device.c \
 	   ILITek_Protocol_3X.c \
 	   ILITek_Protocol_6X.c \
-	   ILITek_DebugTool_3X.c \
+	   ILITek_Debug.c \
 	   API/ILITek_Frequency.c \
 	   API/ILITek_RawData.c \
 	   API/ILITek_SensorTest.c \
-	   API/ILITek_Upgrade.c
+	   API/ILITek_Upgrade.c \
+	   API/ILITek_MpResult.c
 
 libraries := stdc++ rt pthread m
 

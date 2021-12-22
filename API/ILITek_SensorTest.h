@@ -5,7 +5,7 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
 
@@ -29,6 +29,8 @@
 #define PROFILE_FORMAT_INI  ".ini"
 #define PROFILE_V1_0_2_0    0x1000200
 #define PROFILE_V1_0_3_0    0x1000300
+#define PROFILE_INI			0
+#define PROFILE_DAT			1
 /* Extern typedef -----------------------------------------------------------*/
 typedef struct _SensorTest_Node_
 {
@@ -88,6 +90,9 @@ typedef struct _SensorTest_MircoOpen_
 	int TxAvgCorner;                                    //TX Avg Delta Threshold AvoidCorner
 	int RxToles;                                        //RX_Delta_Threshold_Tolerance
 	int RxDiffThr;                                      //RX_Delta_Threshold
+
+	int rx_diff_fail_cnt;
+	int tx_avg_fail_cnt;
 }SensorTest_MircoOpen;
 
 typedef struct _SensorTest_Unifromity_
@@ -132,6 +137,15 @@ typedef struct _SensorTest_Unifromity_
 	SensorTest_BenBenchmark_Node **allraw;
 	SensorTest_BenBenchmark_Node **allwin1;
 	SensorTest_BenBenchmark_Node **allwin2;
+
+	int RawMaxFailCount;
+	int RawMinFailCount;
+	int Win1FailCount;
+	int Win2FailCount;
+	bool RawMaxPass;
+	bool RawMinPass;
+	bool Win1Pass;
+	bool Win2Pass;
 } SensorTest_Unifromity;
 
 
@@ -146,6 +160,7 @@ typedef struct _SensorTest_BenchMark_
 typedef struct _SensorTest_Criteria_
 {
 	// V3
+	bool useINI;
 	char *LogPath;
 	int UseNewFlow;
 	int Open_Threshold;
@@ -184,12 +199,14 @@ typedef struct _SensorTest_Criteria_
 	SensorTest_BenchMark BenchMark;
 	SensorTest_Short Short;
 	SensorTest_MircoOpen MOpen;
-	//Profile Version
+
+	//Profile Info
 	int PFVer0;
 	int PFVer1;
 	int PFVer2;
 	int PFVer3;
 	int PFVer;
+	char PFDate[64];
 
 	int OffsetValue;
 	bool dat_format;    //true:section [TestItem]
@@ -199,8 +216,9 @@ typedef struct _SensorTest_Criteria_
 	short int **open_20V_daltc;
 	short int **open_6V_daltc;
 	short int **open_20_6V_daltc;
-	short int **open_Tx_diff;
+	short int **open_Tx_diff_new;
 	SensorTest_Node **open_Rx_diff;
+	SensorTest_Node **open_Tx_diff;
 
 	short int **open_daltc;
 	short int **open_Tx_daltc;
@@ -223,6 +241,7 @@ typedef struct _SensorTest_Criteria_
 	short int *self_ydaltc;
 
 	unsigned int fw_ver[8];
+
 	//test Item
 	int FWVersion_test;
 	int OpenShort_test;
@@ -249,6 +268,7 @@ typedef struct _SensorTest_Criteria_
 	char *hexfile;
 	unsigned int x_ch;
 	unsigned int y_ch;
+	int profile;    //0:ini for ITS; 1:dat for SensorTest
 } SensorTest_Criteria;
 
 /* Extern macro -------------------------------------------------------------*/
@@ -266,16 +286,22 @@ char *GetIniKeyString(const char *title, const char *key, char *filename);
 int init_sentest_array();
 int ReadST_V6();
 int ReadST_V3();
-int viExitTestMode();
 int ReadST();
 int viRunSensorTest_V6(int inFunctions);
 int viRunSensorTest_V3(int inFunctions);
 uint32_t GetICBlockCrcNum(uint32_t block, uint32_t type);
 int viRunFWVerTest_6X();
 int viRunFWVerTest_3X();
-uint32_t SetOpenInfo(uint8_t frep_L,uint8_t frep_H, uint8_t gain);
 int viRunMircoOpenTest_6X();
 int viRunMircoOpenTest_3X();
 int viRunOpenTest_6X();
+
+int count_digit(long long n);
+int NodeTest_V3(const char *name, short int **delac, SensorTest_BenBenchmark_Node **data,
+		int X_MAX, int Y_MAX, int fail_count_limit, int *fail_count,
+		bool check_max);
+
+void print_PASS_or_FAIL(bool pass);
+
 #endif
 

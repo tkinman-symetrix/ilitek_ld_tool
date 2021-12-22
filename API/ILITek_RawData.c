@@ -5,7 +5,7 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
 
@@ -32,96 +32,6 @@
 FILE *result_file;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-
-int viRunCreateBenchMark_6X(int argc, char *argv[])
-{
-	int ret = _SUCCESS;
-	unsigned int CHX = 0, CHY = 0;
-	int d_len = 0;   //d_len: data total length.
-	int max = atoi(argv[6]), min = atoi(argv[7]);
-
-	PRINTF("Max=%d, Min=%d\n", max, min);
-	ModeCtrl_V6(ENTER_SUSPEND_MODE, ENABLE_ENGINEER);
-	if ( viGetPanelInfor() != _FAIL && ModeCtrl_V6(ENTER_TEST_MODE, DISABLE_ENGINEER) != _FAIL)
-	{
-		d_len = ptl.x_ch * ptl.y_ch;
-		PRINTF("d_len=%d x_ch:%d y_ch:%d\n", d_len, ptl.x_ch, ptl.y_ch);
-
-		if (viInitRawData_6X(TEST_MODE_V6_MC_RAW_NBK, 10) != _FAIL)
-		{
-			if (viGetRawData_6X(d_len) != _FAIL)
-			{
-				ret = _SUCCESS;
-			}
-			else
-			{
-				PRINTF("Error! Get RawData Failed!\n");
-				ret = _FAIL;
-			}
-		}
-		else
-		{
-			PRINTF("Error! Init RawData Failed!\n");
-			ret = _FAIL;
-		}
-
-		if (ret != _FAIL)
-		{
-			for (CHY = 0; CHY < ptl.y_ch; CHY++)
-			{
-				PRINTF("Y_%2dCH:", CHY);
-				for (CHX = 0; CHX < ptl.x_ch; CHX++)
-				{
-					printf("%d,%d,%d,%d;", uiTestDatas[CHY][CHX]
-							, (uiTestDatas[CHY][CHX]*(100+max)/100)
-							, (uiTestDatas[CHY][CHX]*(100-min)/100)
-							, 1);
-				}
-				printf("\n");
-			}
-		}
-
-		if (viInitRawData_6X(TEST_MODE_V6_SC_RAW_NBK, 10) != _FAIL)
-		{
-			d_len = (ptl.x_ch + ptl.y_ch);
-			if (viGetRawData_6X(d_len) != _FAIL)
-			{
-				ret = 1;
-			}
-			else
-			{
-				PRINTF("Error! Get RawData Failed!\n");
-				ret = _FAIL;
-			}
-		}
-		else
-		{
-			PRINTF("Error! Init RawData Failed!\n");
-			ret = _FAIL;
-		}
-		if (ret != _FAIL)
-		{
-			PRINTF("\nSelf X:");
-			for (CHX = 0; CHX < ptl.x_ch; CHX++)
-			{
-				printf("%4d,", uiTestDatas[0][CHX]);
-			}
-			PRINTF("\nSelf Y:");
-			for (CHY = 0; CHY < ptl.y_ch; CHY++)
-			{
-				printf("%4d,", uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch]);
-			}
-			PRINTF("\n");
-		}
-	}
-	else
-	{
-		PRINTF("Error! Get Base Infor error!\n");
-		ret = _FAIL;
-	}
-	viDriverCtrlReset();
-	return ret;
-}
 
 int viRunBGData_3X(int inFrames)
 {
@@ -152,116 +62,111 @@ int viRunCDCType_3X(const char *type, int inFrames) {
 	int reportkey[3][50];
 	uint8_t row = 0;
 
-	PRINTF("Type:%s\n", type);
-	if(strcmp(type, "DAC_P") == 0) {
+	LD_MSG("Type:%s\n", type);
+	if (!strcmp(type, "DAC_P")) {
 		mctype = TEST_MODE_V3_MC_DAC_P;
 		sctype = TEST_MODE_V3_SC_DAC_P;
 		mc_offset = 19;
 		sc_offset = 18;
-	} else if(strcmp(type, "DAC_N") == 0) {
+	} else if (!strcmp(type, "DAC_N")) {
 		mctype = TEST_MODE_V3_MC_DAC_N;
 		sctype = TEST_MODE_V3_SC_DAC_N;
 		mc_offset = 17;
 		sc_offset = 16;
-	} else if(strcmp(type, "Raw") == 0) {
+	} else if (!strcmp(type, "Raw")) {
 		mctype = TEST_MODE_V3_MC_RAW;
 		sctype = TEST_MODE_V3_SC_RAW;
 		keytype = TEST_MODE_V3_KEY_RAW;
 		mc_offset = 0;
 		sc_offset = 3;
-	} else if(strcmp(type, "BG") == 0) {
+	} else if (!strcmp(type, "BG")) {
 		mctype = TEST_MODE_V3_MC_BG;
 		sctype = TEST_MODE_V3_SC_BG;
 		keytype = TEST_MODE_V3_KEY_BG;
 		mc_offset = 1;
 		sc_offset = 4;
-	} else if(strcmp(type, "SE") == 0) {
+	} else if (!strcmp(type, "SE")) {
 		mctype = TEST_MODE_V3_MC_SINGNAL;
 		sctype = TEST_MODE_V3_SC_SINGNAL;
 		keytype = TEST_MODE_V3_KEY_SINGNEL;
 		mc_offset = 2;
 		sc_offset = 5;
-	}
-	else {
-		PRINTF("Type no support,%s\n", type);
+	} else if (!strcmp(type, "AN")) {
+		mctype = TEST_MODE_V3_ALL_NODE;
+		sctype = 0;
+	} else {
+		LD_ERR("Type no support,%s\n", type);
 		return _FAIL;
 	}
-	//int ICProtocolVersion;
-	if (EnterTestMode() != _FAIL)
-	{
-		for (inCounts = 0; inCounts < inFrames && ret != _FAIL; inCounts++)
-		{
+
+	do {
+		ret = EnterTestMode(100);
+		if (ret < 0)
+			break;
+
+		for (inCounts = 0; inCounts < inFrames; inCounts++) {
 			len = ptl.x_ch * ptl.y_ch;
 			row = ptl.x_ch;
 			ret = viGetCDCData_3X(mctype, len, mc_offset, TEST_MODE_V3_Y_DRIVEN, row);
+			if (ret < 0)
+				break;
 
-			if (ret != _FAIL)
-			{
-				PRINTF("%s Datas: %d/%d Frames\n", type, inCounts + 1, inFrames);
-				for (CHY = 0; CHY < ptl.y_ch; CHY++)
-				{
-					PRINTF("Y_%2dCH:", CHY);
-					for (CHX = 0; CHX < ptl.x_ch; CHX++)
-					{
-						printf("%4d,", uiTestDatas[CHY][CHX]);
-						report[CHY][CHX] = uiTestDatas[CHY][CHX];
-						if(uiTestDatas[CHY][CHX] > max)
-							max = uiTestDatas[CHY][CHX];
-						if(uiTestDatas[CHY][CHX] < min)
-							min = uiTestDatas[CHY][CHX];
-					}
-					printf("\n");
+			clrscr();
+			LD_MSG("%s Datas: %d/%d Frames\n", type, inCounts + 1, inFrames);
+			for (CHY = 0; CHY < ptl.y_ch; CHY++) {
+				LD_MSG("Y_%2dCH:", CHY);
+				for (CHX = 0; CHX < ptl.x_ch; CHX++) {
+					LD_MSG("%4d,", uiTestDatas[CHY][CHX]);
+					report[CHY][CHX] = uiTestDatas[CHY][CHX];
+					if (uiTestDatas[CHY][CHX] > max)
+						max = uiTestDatas[CHY][CHX];
+					if (uiTestDatas[CHY][CHX] < min)
+						min = uiTestDatas[CHY][CHX];
 				}
+				LD_MSG("\n");
 			}
 
-			//Self
-			len = ptl.x_ch + ptl.y_ch;
-			row = ptl.x_ch;
-			ret = viGetCDCData_3X(sctype, len, sc_offset, TEST_MODE_V3_Y_DRIVEN, row);
+			if (sctype) {
+				len = ptl.x_ch + ptl.y_ch;
+				row = ptl.x_ch;
+				ret = viGetCDCData_3X(sctype, len, sc_offset, TEST_MODE_V3_Y_DRIVEN, row);
+				if (ret < 0)
+					break;
 
-			if (ret != _FAIL)
-			{
-				PRINTF("\nSelf X:");
-				for (CHX = 0; CHX < ptl.x_ch; CHX++)
-				{
-					printf("%4d,", uiTestDatas[0][CHX]);
+				LD_MSG("\nSelf X:");
+				for (CHX = 0; CHX < ptl.x_ch; CHX++) {
+					LD_MSG("%4d,", uiTestDatas[0][CHX]);
 					report[ptl.y_ch][CHX] = uiTestDatas[0][CHX];
 				}
-				PRINTF("\nSelf Y:");
-				for (CHY = 0; CHY < ptl.y_ch; CHY++)
-				{
-					printf("%4d,", uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch]);
+				LD_MSG("\nSelf Y:");
+				for (CHY = 0; CHY < ptl.y_ch; CHY++) {
+					LD_MSG("%4d,", uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch]);
 					report[CHY][ptl.x_ch] = uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch];
 				}
-				PRINTF("\n");
-
+				LD_MSG("\n");
 			}
-			if (ptl.key_mode == ILITEK_HW_KEY_MODE && keytype != 0) {
-				//Key
+
+			if (ptl.key_mode == ILITEK_HW_KEY_MODE && keytype) {
 				len = ptl.key_num;
 				row = ptl.key_num;
 				ret = viGetCDCData_3X(keytype, len, mc_offset,TEST_MODE_V3_KEY_DATA, row);
-				if (ret != _FAIL)
-				{
-					PRINTF("\nKey data:");
-					for (CHX = 0; CHX < len; CHX++)
-					{
-						printf("%4d,", uiTestDatas[0][CHX]);
-						reportkey[0][CHX] = uiTestDatas[0][CHX];
-					}
-					PRINTF("\n");
+				if (ret < 0)
+					break;
+
+				LD_MSG("\nKey data:");
+				for (CHX = 0; CHX < len; CHX++) {
+					LD_MSG("%4d,", uiTestDatas[0][CHX]);
+					reportkey[0][CHX] = uiTestDatas[0][CHX];
 				}
+				LD_MSG("\n");
+
 			}
-			if (ret != _FAIL)
-				ret = viWriteCDCReport(inCounts+1, report, max, min, reportkey);
+
+			viWriteCDCReport(inCounts+1, report, max, min, reportkey);
 		}
-	}
-	else
-	{
-		PRINTF("Error! Get Base Infor error!\n");
-		ret = _FAIL;
-	}
-	ExitTestMode();
+	} while (0);
+
+	ExitTestMode(100);
 	return ret;
 }
 
@@ -275,170 +180,152 @@ int viRunCDCType_6X(const char *type, int inFrames) {
 	int reportkey[3][50]; //Lego support max key number is 50, data:50 self x:50 self y:1
 	int max = 0, min = 0xFFFF;
 
-	PRINTF("Type:%s\n", type);
-	if(strcmp(type, "DAC_P") == 0) {
+	LD_MSG("Type:%s\n", type);
+	if (!strcmp(type, "DAC_P")) {
 		mctype = TEST_MODE_V6_MC_DAC_P;
 		sctype = TEST_MODE_V6_SC_DAC_P;
 		mckeytype = TEST_MODE_V6_KEY_MC_DAC_P;
 		sckeytype = TEST_MODE_V6_KEY_SC_DAC_P;
-	} else if(strcmp(type, "DAC_N") == 0) {
+	} else if (!strcmp(type, "DAC_N")) {
 		mctype = TEST_MODE_V6_MC_DAC_N;
 		sctype = TEST_MODE_V6_SC_DAC_N;
 		mckeytype = TEST_MODE_V6_KEY_MC_DAC_N;
 		sckeytype = TEST_MODE_V6_KEY_SC_DAC_N;
-	} else if(strcmp(type, "Raw_BK") == 0) {
+	} else if (!strcmp(type, "Raw_BK")) {
 		mctype = TEST_MODE_V6_MC_RAW_BK;
 		sctype = TEST_MODE_V6_SC_RAW_BK;
 		mckeytype = TEST_MODE_V6_KEY_MC_RAW_BK;
 		sckeytype = TEST_MODE_V6_KEY_SC_RAW_BK;
-	} else if(strcmp(type, "Raw_NBK") == 0) {
+	} else if (!strcmp(type, "Raw_NBK")) {
 		mctype = TEST_MODE_V6_MC_RAW_NBK;
 		sctype = TEST_MODE_V6_SC_RAW_NBK;
 		mckeytype = TEST_MODE_V6_KEY_MC_RAW_NBK;
 		sckeytype = TEST_MODE_V6_KEY_SC_RAW_NBK;
-	} else if(strcmp(type, "BG") == 0) {
+	} else if (!strcmp(type, "BG")) {
 		mctype = TEST_MODE_V6_MC_BG_BK;
 		sctype = TEST_MODE_V6_SC_BG_BK;
 		mckeytype = TEST_MODE_V6_KEY_MC_BG_BK;
 		sckeytype = TEST_MODE_V6_KEY_SC_BG_BK;
-	} else if(strcmp(type, "SE") == 0) {
+	} else if (!strcmp(type, "SE")) {
 		mctype = TEST_MODE_V6_MC_SE_BK;
 		sctype = TEST_MODE_V6_SC_SE_BK;
 		mckeytype = TEST_MODE_V6_KEY_MC_SE_BK;
 		sckeytype = TEST_MODE_V6_KEY_SC_SE_BK;
-	}
-	else {
-		PRINTF("Type no support,%s\n", type);
+	} else {
+		LD_ERR("Type no support,%s\n", type);
 		return _FAIL;
 	}
-	ModeCtrl_V6(ENTER_SUSPEND_MODE, ENABLE_ENGINEER);
-	if (ModeCtrl_V6(ENTER_TEST_MODE, DISABLE_ENGINEER) != _FAIL)
-	{
-		PRINTF("d_len=%d x_ch:%d y_ch:%d\n", d_len, ptl.x_ch, ptl.y_ch);
-		for (inCounts = 0; inCounts < inFrames && ret != _FAIL; inCounts++)
-		{
-			if (viInitRawData_6X(mctype, 10) != _FAIL)
-			{
-				d_len = ptl.x_ch * ptl.y_ch;
-				if (viGetRawData_6X(d_len) != _FAIL)
-				{
-					ret = 1;
-				}
-				else
-				{
-					PRINTF("Error! Get %s Failed!\n", type);
-					ret = _FAIL;
-				}
-			}
-			else
-			{
-				PRINTF("Error! Init %s Failed!\n", type);
-				ret = _FAIL;
+
+	do {
+		ret = ModeCtrl_V6(ENTER_SUSPEND_MODE, ENABLE_ENGINEER, 100);
+		if (ret < 0)
+			break;
+
+		ret = ModeCtrl_V6(ENTER_TEST_MODE, DISABLE_ENGINEER, 100);
+		if (ret < 0)
+			break;
+
+		LD_MSG("x_ch: %d, y_ch: %d\n", ptl.x_ch, ptl.y_ch);
+		for (inCounts = 0; inCounts < inFrames; inCounts++) {
+			ret = viInitRawData_6X(mctype, 10);
+			if (ret < 0) {
+				LD_ERR("Error! Init %x Failed!\n", mctype);
+				break;
 			}
 
-			if (ret != _FAIL)
-			{
-				PRINTF("%s Datas: %d/%d Frames\n", type, inCounts, inFrames);
-				for (CHY = 0; CHY < ptl.y_ch; CHY++)
-				{
-					PRINTF("Y_%2dCH:", CHY);
-					for (CHX = 0; CHX < ptl.x_ch; CHX++)
-					{
-						printf("%4d,", uiTestDatas[CHY][CHX]);
-						report[CHY][CHX] = uiTestDatas[CHY][CHX];
-						if(uiTestDatas[CHY][CHX] > max)
-							max = uiTestDatas[CHY][CHX];
-						if(uiTestDatas[CHY][CHX] < min)
-							min = uiTestDatas[CHY][CHX];
-					}
-					printf("\n");
+			d_len = ptl.x_ch * ptl.y_ch;
+			ret = viGetRawData_6X(d_len, NULL);
+			if (ret < 0) {
+				LD_ERR("Error! Get %x Failed!\n", mctype);
+				break;
+			}
+
+			clrscr();
+			LD_MSG("%s Datas: %d/%d Frames\n", type, inCounts, inFrames);
+			for (CHY = 0; CHY < ptl.y_ch; CHY++) {
+				LD_MSG("Y_%2dCH:", CHY);
+				for (CHX = 0; CHX < ptl.x_ch; CHX++) {
+					LD_MSG("%4d,", uiTestDatas[CHY][CHX]);
+					report[CHY][CHX] = uiTestDatas[CHY][CHX];
+					if (uiTestDatas[CHY][CHX] > max)
+						max = uiTestDatas[CHY][CHX];
+					if (uiTestDatas[CHY][CHX] < min)
+						min = uiTestDatas[CHY][CHX];
 				}
+				LD_MSG("\n");
 			}
 
 			ret = viInitRawData_6X(sctype, 10);
-			if(ret < 0)
-			{
-				PRINTF("Error! Init RawData Failed!\n");
+			if (ret < 0) {
+				LD_ERR("Error! Init %x Failed!\n", sctype);
+				break;
 			}
 
-			d_len = (ptl.x_ch + ptl.y_ch);
-			ret = viGetRawData_6X(d_len);
-			if(ret < 0)
-			{
-				PRINTF("Error! Get RawData Failed!\n");
-				ret = _FAIL;
+			d_len = ptl.x_ch + ptl.y_ch;
+			ret = viGetRawData_6X(d_len, NULL);
+			if (ret < 0) {
+				LD_ERR("Error! Get %x Failed!\n", sctype);
+				break;
 			}
-			//Because the data on the first side is abnormal, it is obtained from the second side.
-			//Bug
-			PRINTF("\nSelf X:");
-			for (CHX = 0; CHX < ptl.x_ch; CHX++)
-			{
-				printf("%4d,", uiTestDatas[0][CHX]);
+
+			LD_MSG("\nSelf X:");
+			for (CHX = 0; CHX < ptl.x_ch; CHX++) {
+				LD_MSG("%4d,", uiTestDatas[0][CHX]);
 				report[ptl.y_ch][CHX] = uiTestDatas[0][CHX];
 			}
-			PRINTF("\nSelf Y:");
-			for (CHY = 0; CHY < ptl.y_ch; CHY++)
-			{
-				printf("%4d,", uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch]);
+
+			LD_MSG("\nSelf Y:");
+			for (CHY = 0; CHY < ptl.y_ch; CHY++) {
+				LD_MSG("%4d,", uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch]);
 				report[CHY][ptl.x_ch] = uiTestDatas[1+CHY/ptl.x_ch][CHY%ptl.x_ch];
 			}
-			PRINTF("\n");
+			LD_MSG("\n");
 
-			if(ptl.key_mode == ILITEK_HW_KEY_MODE) {
+			if (ptl.key_mode == ILITEK_HW_KEY_MODE) {
 				ret = viInitRawData_6X(mckeytype, 10);
-				if(ret < 0)
-				{
-					PRINTF("Error! Init RawData Failed!\n");
+				if (ret < 0) {
+					LD_ERR("Error! Init %x Failed!\n", mckeytype);
+					break;
 				}
+
 				d_len = ptl.key_num;
-				ret = viGetRawData_6X(d_len);
-				if(ret < 0)
-				{
-					PRINTF("Error! Get RawData Failed!\n");
-					ret = _FAIL;
+				ret = viGetRawData_6X(d_len, NULL);
+				if (ret < 0) {
+					LD_ERR("Error! Get %x Failed!\n", mckeytype);
+					break;
 				}
-				//Because the data on the first side is abnormal, it is obtained from the second side.
-				//Bug
-				PRINTF("\nKey data:");
-				for (CHX = 0; CHX < d_len; CHX++)
-				{
-					printf("%4d,", uiTestDatas[0][CHX]);
+
+				LD_MSG("\nKey data:");
+				for (CHX = 0; CHX < d_len; CHX++) {
+					LD_MSG("%4d,", uiTestDatas[0][CHX]);
 					reportkey[0][CHX] = uiTestDatas[0][CHX];
-					//report[ptl.y_ch][CHX] = uiTestDatas[0][CHX];
 				}
 				ret = viInitRawData_6X(sckeytype, 10);
-				if(ret < 0)
-				{
-					PRINTF("Error! Init RawData Failed!\n");
+				if (ret < 0) {
+					LD_ERR("Error! Init %x Failed!\n", sckeytype);
+					break;
 				}
-				d_len = ptl.key_num + 1;//add 1 is self y channel
-				ret = viGetRawData_6X(d_len);
-				if(ret < 0)
-				{
-					PRINTF("Error! Get RawData Failed!\n");
-					ret = _FAIL;
+				d_len = ptl.key_num + 1; //add 1 for self y ch
+				ret = viGetRawData_6X(d_len, NULL);
+				if (ret < 0) {
+					LD_ERR("Error! Get %x Failed!\n", sckeytype);
+					break;
 				}
-				//Because the data on the first side is abnormal, it is obtained from the second side.
-				//Bug
-				PRINTF("Self X:");
-				for (CHX = 0; CHX < ptl.key_num; CHX++)
-				{
-					printf("%4d,", uiTestDatas[0][CHX]);
+
+				LD_MSG("\nSelf X:");
+				for (CHX = 0; CHX < ptl.key_num; CHX++) {
+					LD_MSG("%4d,", uiTestDatas[0][CHX]);
 					reportkey[1][CHX] = uiTestDatas[0][CHX];
-					//report[ptl.y_ch][CHX] = uiTestDatas[0][CHX];
 				}
-				PRINTF("\nSelf Y: %4d\n", uiTestDatas[0][ptl.key_num]);
+				LD_MSG(" Self Y: %4d\n", uiTestDatas[0][ptl.key_num]);
 				reportkey[2][0] = uiTestDatas[0][ptl.key_num];
 			}
-			ret = viWriteCDCReport(inCounts+1, report, max, min, reportkey);
+
+			viWriteCDCReport(inCounts+1, report, max, min, reportkey);
 		}
-	}
-	else
-	{
-		PRINTF("Error! Get Base Infor error!\n");
-		ret = _FAIL;
-	}
-	ModeCtrl_V6(ENTER_NORMAL_MODE, DISABLE_ENGINEER);
+	} while (0);
+
+	ModeCtrl_V6(ENTER_NORMAL_MODE, DISABLE_ENGINEER, 100);
 	return ret;
 }
 
@@ -483,37 +370,23 @@ int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode)
 	Wbuff[2] = 0x00;
 	Wbuff[3] = ucCMDMode;
 	ret = TransferData(Wbuff, 4, NULL, 0, 1000);
-	usleep(200000);
 	if (ret < 0)
 		return _FAIL;
+	usleep(200000);
 	ret = CheckBusy(100, 50, NO_NEED);
 	return ret;
 }
 
 int viInitRawData_6X(unsigned char cmd, int delay_count)
 {
-	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
+	uint8_t Wbuff[64] = {0};
 
 	Wbuff[0] = ILITEK_TP_CMD_SET_CDC_INITOAL_V6;
 	Wbuff[1] = cmd;
-	if (inConnectStyle == _ConnectStyle_I2C_) {
-		TransferData(Wbuff, 2, Rbuff, 0, 1000);
-		if (CheckBusy(1000, delay_count, SYSTEM_BUSY|INITIAL_BUSY) < 0)
-		{
-			PRINTF("%s, CDC Initial: CheckBusy Failed\n", __func__);
-			return _FAIL;
-		}
-	} else if (inConnectStyle == _ConnectStyle_I2CHID_) {
-		if (TransferData(Wbuff, 2, Rbuff, 0, 1000) < 0)
-			return _FAIL;
-		if (viWaitAck(Wbuff[0], 1500000) < 0)
-			return _FAIL;
-	} else {
-		if (TransferData(Wbuff, 2, Rbuff, 1, 1000) < 0) {
-			PRINTF("%s, CDC Initial: USB no ack\n", __func__);
-			return _FAIL;
-		}
-	}
+
+	if (write_and_wait_ack(Wbuff, 2, 5000, 1000, delay_count,
+			       SYSTEM_BUSY | INITIAL_BUSY) < 0)
+		return _FAIL;
 
 	return _SUCCESS;
 }
@@ -538,172 +411,145 @@ int viInitRawData_3Para_3X(unsigned char ucCMDInit, unsigned char ucCMDMode, uns
 	return ret;
 }
 
-int viGetRawData_3X(unsigned char ucCMD, unsigned char unStyle, int inTotalCounts, unsigned char ucDataFormat, unsigned char ucLineLenth)
+int viGetRawData_3X(unsigned char ucCMD, unsigned char unStyle,
+		    int d_len, unsigned char ucDataFormat,
+		    unsigned int rowLen, uint8_t *buf)
 {
-	unsigned char ucFirst = 1;
-	unsigned char ucReadCounts = 0;
-	unsigned char ucIndex = 0;
-	int inNeedCounts = 0;
-	int inGettedCounts = 0;
+	int rlen, wlen = 1;
+	int idx = 0;
+	int need, got = 0;
 	int ret = 0;
 	short int *p_s16Data;
 	char *p_c8Data;
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
+	int copy_len = 0, offset = 0;
+	bool writen = false;
+	char tmpbuf[64];
 
-	if (ucDataFormat == _DataFormat_16_Bit_)
-		inNeedCounts = inTotalCounts * 2;
-	else
-		inNeedCounts = inTotalCounts;
-	do
-	{
-		if (inNeedCounts >= 30)
-		{
-			ucReadCounts = 32;
-		}
+	need = (ucDataFormat == _DataFormat_16_Bit_) ? d_len * 2 : d_len;
+
+	Wbuff[0] = ucCMD;
+
+	do {
+		if (inConnectStyle == _ConnectStyle_I2C_)
+			rlen = get_min(need + 2, 32);
 		else
-		{
-			ucReadCounts = inNeedCounts + 2;
-		}
-		if (inConnectStyle == _ConnectStyle_USB_)
-			ucReadCounts = 60;
-		switch (unStyle)
-		{
-			case _FastMode_:
-				{
-					if (ucFirst == 1)
-					{
-						Wbuff[0] = ucCMD;
-						ucFirst = 0;
-						ret = TransferData(Wbuff, 1, Rbuff, ucReadCounts, 1000);
-					}
-					else
-					{
-						ret = TransferData(Wbuff, 0, Rbuff, ucReadCounts, 1000);
-					}
-					break;
-				}
-			case _SlowMode_:
-				{
-					Wbuff[0] = ucCMD;
-					ret=TransferData(Wbuff, 1, Rbuff, ucReadCounts, 1000);
-					break;
-				}
-		}
+			rlen = get_min(need + 2, 60);
 
-		if (ret < 0)
-		{
-			PRINTF("Error! Read Data error \n");
+		if (unStyle == _FastMode_)
+			wlen = (writen == false) ? 1 : 0;
+
+		if (inConnectStyle == _ConnectStyle_I2CHID_ &&
+		    unStyle == _FastMode_ && writen == true) {
+			ret = read_report(tmpbuf, 64, 1000);
+			memcpy(Rbuff, tmpbuf + 4, rlen);
+		} else {
+			ret = TransferData(Wbuff, wlen, Rbuff, rlen, 1000);
+		}
+		if (ret < 0) {
+			LD_ERR("Error! Read Data error, wlen: %d\n", wlen);
 			return _FAIL;
 		}
-		//PRINTF("ucReadCounts: %d \n",ucReadCounts);
-		for (ucIndex = 0; ucIndex < ucReadCounts - 2;)
-		{
-			if (ucDataFormat == _DataFormat_16_Bit_)
-			{
-				p_s16Data = (short *)(&Rbuff[2]);
-				//uiTestDatas[inGettedCounts/ucLineLenth][inGettedCounts%ucLineLenth]=(short)(Rbuff[ucIndex + 2]) + ((short)Rbuff[ucIndex + 3] << 8);
-				uiTestDatas[inGettedCounts / ucLineLenth][inGettedCounts % ucLineLenth] = p_s16Data[ucIndex / 2];
-				ucIndex += 2;
-			}
-			else
-			{
-				if (ucSignedDatas == 1)
-				{
-					p_c8Data = (char *)(&Rbuff[2]);
-					uiTestDatas[inGettedCounts / ucLineLenth][inGettedCounts % ucLineLenth] = p_c8Data[ucIndex];
-				}
-				else
-				{
-					uiTestDatas[inGettedCounts / ucLineLenth][inGettedCounts % ucLineLenth] = Rbuff[ucIndex + 2];
-				}
-				ucIndex++;
-			}
-			inGettedCounts++;
-			if (inGettedCounts >= inTotalCounts)
-				break;
+
+		writen = true;
+
+		if (buf) {
+			copy_len = rlen - 2;
+			memcpy(buf + offset, Rbuff + 2, copy_len);
+			offset += copy_len;
+			continue;
 		}
-		inNeedCounts -= (ucReadCounts - 2);
-		//PRINTF("Read Need Counts:%d, inGettedCounts =%d!, \n",inNeedCounts, inGettedCounts);
-	}
-	while (inNeedCounts > 0);
-	return _SUCCESS;
+
+		for (idx = 0; idx < rlen - 2 && got < d_len; got++) {
+			if (ucDataFormat == _DataFormat_16_Bit_) {
+				p_s16Data = (short int *)(&Rbuff[2]);
+				uiTestDatas[got / rowLen][got % rowLen] =
+					p_s16Data[idx / 2];
+				idx += 2;
+				continue;
+ 			}
+
+			if (ucSignedDatas == 1) {
+				p_c8Data = (char *)(&Rbuff[2]);
+				uiTestDatas[got / rowLen][got % rowLen] =
+					p_c8Data[idx];
+			} else {
+				uiTestDatas[got / rowLen][got % rowLen] =
+					Rbuff[idx + 2];
+			}
+			idx++;
+		}
+	} while ((need -= (rlen - 2)) > 0);
+
+	return 0;
 }
 
-int viGetRawData_6X(unsigned int d_len)
+int viGetRawData_6X(unsigned int d_len, uint8_t *buf)
 {
-	unsigned int uiReadCounts = 0;
-	unsigned int uiIndex = 0;
-	unsigned int inNeedCounts = d_len;
-	unsigned int inGettedCounts = 0, t_len = RAW_DATA_TRANSGER_V6_LENGTH;
+	unsigned int rlen = 0;
+	unsigned int idx = 0;
+	int need = d_len;
+	unsigned int got = 0, t_len = RAW_DATA_TRANSGER_V6_LENGTH;
 	int ret = 0;
-	uint16_t *p_s16Data;
-	uint8_t Wbuff[64] = {0}, *Rbuff = NULL;
-	unsigned int header = 6;     //cmd 1byte, sense channel 2byte, drive channel 2byte, checksum 1byte.
-	int start = 5;      //cmd 1byte, sense channel 2byte, drive channel 2byte.
-	int id_len = 0;     //report id 1byte, I2C not use it, USB only use.
+	uint8_t Wbuff[64] = {0}, Rbuff[4096];
+	unsigned int header = 6;
+	int start = 5;
+	int id_len = 0;
+	int copy_len = 0;
 
 	if (inConnectStyle==_ConnectStyle_USB_ ||
-			inConnectStyle==_ConnectStyle_I2CHID_) {
-		id_len = 1;   //USB only use
-	}
+	    inConnectStyle==_ConnectStyle_I2CHID_)
+		id_len = 1;
+
 	header = header + id_len;
 	start = start + id_len;
 	SetDataLength_V6(t_len);
-	p_s16Data = (uint16_t *)calloc(d_len, sizeof(uint16_t));
-	Rbuff = (uint8_t *)calloc(header + t_len, sizeof(uint8_t));
-	if(d_len*2 + header < t_len && inConnectStyle ==_ConnectStyle_I2C_)
-		t_len = d_len*2;
+
+	if (inConnectStyle == _ConnectStyle_I2C_)
+		t_len = (d_len * 2 + header < t_len) ? d_len * 2 : t_len;
+
 	do {
-		PRINTF("Read buffer length:%d\n", t_len);
-		uiReadCounts = t_len + header;
+		rlen = t_len + header;
+
 		Wbuff[0] = ILITEK_TP_CMD_GET_CDC_DATA_V6;
-		if (inConnectStyle==_ConnectStyle_USB_) {
-			ret = TransferData(Wbuff, 1, Rbuff, 1, 10000);
-			ret = TransferData(Wbuff, 0, Rbuff, t_len, 1000);
-		} else if (inConnectStyle==_ConnectStyle_I2CHID_) {
-			// check ack, so read len set as 0
-			ret = TransferData(Wbuff, 1, Rbuff, 0, 10000);
-			if (viWaitAck(buff[0], 1500000) < 0)
-				return _FAIL;
-			ret = TransferData(Wbuff, 0, Rbuff, t_len, 1000);
-		} else {
-			ret = CheckBusy(300, 10, NO_NEED);
-			ret = TransferData(Wbuff, 1, Rbuff, uiReadCounts, 1000);
-		}
+
+		if (write_and_wait_ack(Wbuff, 1, 10000, 300, 10, NO_NEED) < 0)
+			return _FAIL;
+
+		if (inConnectStyle == _ConnectStyle_I2C_)
+			ret = TransferData(NULL, 0, Rbuff, rlen, 1000);
+		else
+			ret = TransferData(NULL, 0, Rbuff, t_len, 1000);
 
 		if (ret < 0) {
-			PRINTF("Error! Read Data error \n");
-			free(p_s16Data);
-			free(Rbuff);
-			return _FAIL;
+			LD_ERR("Error! Read Data error \n");
+			return ret;
 		}
 
-		inGettedCounts = (int)Rbuff[1+id_len] + (int)(Rbuff[2+id_len] << 8)
-			+ (int)(Rbuff[3+id_len] + (Rbuff[4+id_len] << 8))* ptl.x_ch;
-		if(inGettedCounts + inNeedCounts > d_len) {
-			printf("FW get lenght error\n");
-			printf("0x%x 0x%x 0x%x 0x%x\n",Rbuff[1+id_len], Rbuff[2+id_len], Rbuff[3+id_len], Rbuff[4+id_len]);
-			printf("inGettedCounts =%d,d_len=%d,inNeedCounts=%d\n", inGettedCounts, d_len, inNeedCounts);
+		got = get_le16(Rbuff + id_len + 1) +
+		      get_le16(Rbuff + id_len + 3) * ptl.x_ch;
+
+		if (got + need > d_len) {
+			LD_ERR("FW get lenght error, got: %u, need: %d, d_len: %u\n",
+				got, need, d_len);
 			break;
 		}
-		//printf("1 inGettedCounts =%d,d_len=%d\n", inGettedCounts, d_len);
-		for (uiIndex = start; uiIndex < uiReadCounts - 1; uiIndex += 2, inGettedCounts++)
-		{
-			if(inGettedCounts >= d_len) {
-				printf("Get data end\n");
-				printf("inGettedCounts =%d,d_len=%d,inNeedCounts=%d\n", inGettedCounts, d_len, inNeedCounts);
-				break;
-			}
-			p_s16Data[inGettedCounts] = (uint16_t)(Rbuff[uiIndex] + (Rbuff[uiIndex+1] << 8));
-			uiTestDatas[inGettedCounts / ptl.x_ch][inGettedCounts % ptl.x_ch] = p_s16Data[inGettedCounts];
-			//PRINTF("raw[%d]:%d,%d", inGettedCounts, p_s16Data[inGettedCounts], uiTestDatas[inGettedCounts / ptl.x_ch][inGettedCounts % ptl.x_ch]);
+
+		if (buf) {
+			copy_len = get_min(2 * (d_len - got), t_len);
+			memcpy(buf + 2 * got, Rbuff + start, copy_len);
+			got += (copy_len / 2);
+			continue;
+	     	}
+
+		for (idx = start; idx < rlen - 1 && got < d_len;
+		     idx += 2, got++) {
+			uiTestDatas[got / ptl.x_ch][got % ptl.x_ch] =
+				get_le16(Rbuff + idx);
 		}
-		inNeedCounts = d_len - inGettedCounts;
-		//printf("2 inGettedCounts =%d,d_len=%d\n", inGettedCounts, d_len);
-	} while (inNeedCounts > 0);
-	free(p_s16Data);
-	free(Rbuff);
-	return _SUCCESS;
+	} while ((need = d_len - got) > 0);
+
+	return 0;
 }
 
 int viRunBGData(int inFrames)
@@ -768,8 +614,12 @@ int viRunCDCType(char *argv[]) {
 	int ret = _SUCCESS;
 	int inFrames = atoi(argv[7]);
 	char *type = argv[6];
-	if(viGetPanelInfor() == _FAIL)
+	if (viGetPanelInfor() == _FAIL)
 		return _FAIL;
+
+	if (ICMode == 0x55)
+		return _FAIL;
+
 	viCreateCDCReportFile(type);
 	if (inProtocolStyle == _Protocol_V3_)
 	{
@@ -799,14 +649,14 @@ int viCreateCDCReportFile(const char *type)
 	timeinfo = localtime (&rawtime);
 	if (access("Record",0) == _FAIL) {
 		if(mkdir("Record",0777)) {
-			PRINTF("creat Record file bag failed!!!");
+			LD_ERR("creat Record file bag failed!!!");
 			return _FAIL;
 		}
 	}
 	strftime(timebuf,60,"%Y_%m_%d_%I_%M_%S",timeinfo);
-	//PRINTF(" %s %s\n", ST.LogPath, tmp);
+	//LD_MSG(" %s %s\n", ST.LogPath, tmp);
 	sprintf(result_file_name,"Record/%s.csv", timebuf);
-	PRINTF("Record file:%s\n", result_file_name);
+	LD_MSG("Record file:%s\n", result_file_name);
 	result_file = fopen(result_file_name, "w");
 	if(strcmp(type, "DAC_P") == 0) {
 		strcpy(cdc_type, "TEST_MODE_DAC_P");
@@ -834,7 +684,7 @@ int viCreateCDCReportFile(const char *type)
 		strcpy(interface, "HID");
 	else
 		strcpy(interface, "I2C");
-	fprintf(result_file, TOOL_VERSION);
+	fprintf(result_file, "%s\n", TOOL_VERSION);
 	fprintf(result_file, "===================================================================\n");
 	fprintf(result_file, "Sensing Method  =%s\n", cdc_type);
 	fprintf(result_file, "IC Type         =ILI%x\n", ptl.ic);
@@ -860,7 +710,7 @@ int viCreateCDCReportFile(const char *type)
 	return ret;
 }
 
-int viWriteCDCReport(int count, int report[][300], int max, int min, int report_key[][50]) {
+void viWriteCDCReport(int count, int report[][300], int max, int min, int report_key[][50]) {
 	unsigned int CHX = 0, CHY = 0;
 
 	fprintf(result_file, "===================================================================\n");
@@ -897,26 +747,24 @@ int viWriteCDCReport(int count, int report[][300], int max, int min, int report_
 		}
 		fprintf(result_file, "\n");
 	}
-
-	return 0;
 }
 
 int viGetCDCData_6X(unsigned char type, unsigned int len) {
 	int ret = _FAIL;
 	if (viInitRawData_6X(type, 10) != _FAIL)
 	{
-		if (viGetRawData_6X(len) != _FAIL)
+		if (viGetRawData_6X(len, NULL) != _FAIL)
 		{
 			ret = _SUCCESS;
 		}
 		else
 		{
-			PRINTF("Error! Get RawData Failed!\n");
+			LD_ERR("Error! Get RawData Failed!\n");
 		}
 	}
 	else
 	{
-		PRINTF("Error! Init RawData Failed!\n");
+		LD_ERR("Error! Init RawData Failed!\n");
 	}
 	return ret;
 }
@@ -925,24 +773,24 @@ int viGetCDCData_3X(unsigned char type, unsigned int len, uint8_t offset, uint8_
 	int ret = _SUCCESS;
 	uint8_t u8DataInfor;
 
-	PRINTF("len=%d\n", len);
+	LD_MSG("len=%d\n", len);
 	ret = RawDataInfor();
 	u8DataInfor = (ret & (1 << offset)) ? _DataFormat_16_Bit_: _DataFormat_8_Bit_;
 	if (viInitRawData_3X(type, driven) != _FAIL)
 	{
-		if (viGetRawData_3X(driven, _FastMode_, len, u8DataInfor, row) != _FAIL)
+		if (viGetRawData_3X(driven, _FastMode_, len, u8DataInfor, row, NULL) != _FAIL)
 		{
 			ret = _SUCCESS;
 		}
 		else
 		{
-			PRINTF("Error! Get RawData Failed!\n");
+			LD_ERR("Error! Get RawData Failed!\n");
 			ret = _FAIL;
 		}
 	}
 	else
 	{
-		PRINTF("Error! Init RawData Failed!\n");
+		LD_ERR("Error! Init RawData Failed!\n");
 		ret = _FAIL;
 	}
 	return ret;

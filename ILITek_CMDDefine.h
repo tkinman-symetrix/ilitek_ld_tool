@@ -5,7 +5,7 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
 
@@ -61,15 +61,41 @@
 #endif
 
 /* Extern define ------------------------------------------------------------*/
-//#define PRINTF_WITH_HEADER
-#ifdef PRINTF_WITH_HEADER
-#define PRINTF(f_, ...) printf("#"), \
-	printf((f_), ##__VA_ARGS__)
-#else
-//#define PRINTF(f_, ...) printf(("%s,%d,"f_), __func__, __LINE__, ##__VA_ARGS__)
-#define PRINTF(f_, ...) printf((f_), ##__VA_ARGS__)
-#endif
+#define LD_ERR(f_, ...)							 \
+		do {							 \
+			if (dbg_level >= LOG_LEVEL_ERR)			 \
+				printf("[LD][ERR][%s][%d] "f_, __func__, __LINE__, ##__VA_ARGS__);	 \
+			PRINTF_LOG("[LD][ERR][%s][%d] "f_, __func__, __LINE__, ##__VA_ARGS__);	 \
+		} while (false)
 
+#define LD_MSG(f_, ...)							\
+		do {							\
+			if (dbg_level >= LOG_LEVEL_MSG)			\
+				printf(f_, ##__VA_ARGS__);	 	\
+			PRINTF_LOG(f_, ##__VA_ARGS__);	 		\
+		} while (false)
+
+#define LD_DBG(f_, ...)							\
+		do {							\
+			if (dbg_level >= LOG_LEVEL_DBG)			\
+				printf(f_, ##__VA_ARGS__);		\
+			if (dbg_level >= LOG_LEVEL_DBG)			\
+				PRINTF_LOG(f_, ##__VA_ARGS__);		\
+		} while (false)
+
+
+#define PRINTF_LOG(f_, ...)						\
+		do {							\
+			if (use_log_file && log_file)			\
+				fprintf(log_file, (f_), ##__VA_ARGS__); \
+		} while (false)
+
+enum LOG_LEVEL {
+	LOG_LEVEL_NONE = -1,
+	LOG_LEVEL_ERR = 0,
+	LOG_LEVEL_MSG,
+	LOG_LEVEL_DBG,
+};
 
 #define _FAIL 		-1
 #define _UNKNOWN 	-2
@@ -179,17 +205,19 @@
 #define ILITEK_IOCTL_I2C_WRITE_LENGTH           _IOWR(ILITEK_IOCTL_BASE, 1, int)
 #define ILITEK_IOCTL_I2C_READ_DATA              _IOWR(ILITEK_IOCTL_BASE, 2, unsigned char*)
 #define ILITEK_IOCTL_I2C_READ_LENGTH            _IOWR(ILITEK_IOCTL_BASE, 3, int)
-#define ILITEK_IOCTL_DRIVER_INFORMATION			_IOWR(ILITEK_IOCTL_BASE, 8, int)
-#define ILITEK_IOCTL_I2C_INT_FLAG				_IOWR(ILITEK_IOCTL_BASE, 10, int)
+#define ILITEK_IOCTL_DRIVER_INFORMATION		_IOWR(ILITEK_IOCTL_BASE, 8, int)
+#define ILITEK_IOCTL_I2C_INT_FLAG		_IOWR(ILITEK_IOCTL_BASE, 10, int)
 #define ILITEK_IOCTL_I2C_UPDATE                 _IOWR(ILITEK_IOCTL_BASE, 11, int)
 #define ILITEK_IOCTL_STOP_READ_DATA             _IOWR(ILITEK_IOCTL_BASE, 12, int)
 #define ILITEK_IOCTL_START_READ_DATA            _IOWR(ILITEK_IOCTL_BASE, 13, int)
-#define ILITEK_IOCTL_GET_INTERFANCE				_IOWR(ILITEK_IOCTL_BASE, 14, int)
-#define ILITEK_IOCTL_I2C_SWITCH_IRQ				_IOWR(ILITEK_IOCTL_BASE, 15, int)
-#define ILITEK_IOCTL_UPDATE_FLAG				_IOWR(ILITEK_IOCTL_BASE, 16, int)
-#define ILITEK_IOCTL_SET_RESET			        _IOWR(ILITEK_IOCTL_BASE, 19, int)
-#define ILITEK_IOCTL_I2C_UPDATE_FW				_IOWR(ILITEK_IOCTL_BASE, 18, int)
-#define ILITEK_IOCTL_DEBUG_SWITCH				_IOWR(ILITEK_IOCTL_BASE, 21, int)
+#define ILITEK_IOCTL_GET_INTERFANCE		_IOWR(ILITEK_IOCTL_BASE, 14, int)
+#define ILITEK_IOCTL_I2C_SWITCH_IRQ		_IOWR(ILITEK_IOCTL_BASE, 15, int)
+#define ILITEK_IOCTL_UPDATE_FLAG		_IOWR(ILITEK_IOCTL_BASE, 16, int)
+#define ILITEK_IOCTL_SET_RESET			_IOWR(ILITEK_IOCTL_BASE, 19, int)
+#define ILITEK_IOCTL_I2C_UPDATE_FW		_IOWR(ILITEK_IOCTL_BASE, 18, int)
+#define ILITEK_IOCTL_DEBUG_SWITCH		_IOWR(ILITEK_IOCTL_BASE, 21, int)
+#define ILITEK_IOCTL_I2C_INT_CLR		_IOWR(ILITEK_IOCTL_BASE, 22, int)
+#define ILITEK_IOCTL_I2C_INT_POLL		_IOWR(ILITEK_IOCTL_BASE, 23, unsigned char*)
 
 //define i2c controller
 #define ILITEK_DEFAULT_I2C_TIMEOUT				100
@@ -207,62 +235,64 @@
 #define ILITEK_TP_CMD_GET_KEY_INFORMATION		0x22
 #define ILITEK_TP_CMD_GET_RAW_DATA_INFOR		0x25
 #define ILITEK_TP_CMD_GET_FIRMWARE_VERSION		0x40
-#define ILITEK_TP_CMD_GET_VENDOR_VERSION 		0x41
+#define ILITEK_TP_CMD_GET_VENDOR_VERSION		0x41
 #define ILITEK_TP_CMD_GET_PROTOCOL_VERSION		0x42
 #define ILITEK_TP_CMD_GET_INTERNAL_VERSION		0x43
 #define ILITEK_TP_CMD_SOFTWARE_RESET			0x60
 #define ILITEK_TP_CMD_GET_MCU_KERNEL_VER		0X61
-#define ILITEK_TP_CMD_SWITCH_MODE       		0X68
-#define ILITEK_TP_CMD_SET_FS_INFO       		0X69
-#define ILITEK_TP_CMD_SET_SHORT_INFO       		0X6A
-#define ILITEK_TP_CMD_SET_OPEN_INFO       		0X6D
-#define ILITEK_TP_CMD_GET_SYSTEM_BUSY           0X80
-#define ILITEK_TP_CMD_READ_OP_MODE				0xC0
-#define ILITEK_TP_CMD_SET_AP_MODE				0xC1
-#define ILITEK_TP_CMD_SET_BL_MODE				0xC2
-#define ILITEK_TP_CMD_WRITE_DATA				0xC3
-#define ILITEK_TP_CMD_WRITE_ENABLE				0xC4
-#define ILITEK_TP_CMD_GET_FLASH            	    0xC5
-#define ILITEK_TP_GET_AP_CRC        			0xC7
-#define ILITEK_TP_CMD_SET_FLASH_ADDRESS  	    0xC8
+#define ILITEK_TP_CMD_SWITCH_MODE			0X68
+#define ILITEK_TP_CMD_SET_FS_INFO			0X69
+#define ILITEK_TP_CMD_SET_SHORT_INFO			0X6A
+#define ILITEK_TP_CMD_SET_OPEN_INFO			0X6D
+#define ILITEK_TP_CMD_GET_SYSTEM_BUSY			0X80
+#define ILITEK_TP_CMD_READ_OP_MODE			0xC0
+#define ILITEK_TP_CMD_SET_AP_MODE			0xC1
+#define ILITEK_TP_CMD_SET_BL_MODE			0xC2
+#define ILITEK_TP_CMD_WRITE_DATA			0xC3
+#define ILITEK_TP_CMD_WRITE_ENABLE			0xC4
+#define ILITEK_TP_CMD_GET_FLASH				0xC5
+#define ILITEK_TP_GET_AP_CRC				0xC7
+#define ILITEK_TP_CMD_SET_FLASH_ADDRESS			0xC8
+#define ILITEK_TP_GET_DATA_CRC				0xCA
 #define ILITEK_TP_CMD_TEST_MODE_CONTROL			0xF2
-#define ILITEK_TP_CMD_SWITCH_TOUCH				0xF5
+#define ILITEK_TP_CMD_SWITCH_TOUCH			0xF5
 #define ILITEK_TP_CMD_SET_DATA_LENGTH			0xC9
 //protocol v6 command
-#define ILITEK_TP_CMD_ACCESS_SLAVE              0xCB
+#define ILITEK_TP_CMD_PARAMETER_V6			0X65
+#define ILITEK_TP_CMD_ACCESS_SLAVE			0xCB
 #define ILITEK_TP_CMD_WRITE_FLASH_ENABLE		0xCC
-#define ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_ADDR 	0xCD
-#define ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_NUM 	0xCF
-#define ILITEK_TP_CMD_SET_MODE_CONTORL  		0xF0
+#define ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_ADDR		0xCD
+#define ILITEK_TP_CMD_GET_BLOCK_CRC_FOR_NUM		0xCF
+#define ILITEK_TP_CMD_SET_MODE_CONTORL			0xF0
 #define ILITEK_TP_CMD_SET_CDC_INITOAL_V6		0xF1
-#define ILITEK_TP_CMD_GET_CDC_DATA_V6   		0xF2
+#define ILITEK_TP_CMD_GET_CDC_DATA_V6			0xF2
 
 //define op mode value
-#define OP_MODE_APPLICATION						0x5A
-#define OP_MODE_BOOTLOADER						0x55
+#define OP_MODE_APPLICATION				0x5A
+#define OP_MODE_BOOTLOADER				0x55
 
 //define key information
-#define ILITEK_KEYINFO_V3_HEADER                4
-#define ILITEK_KEYINFO_V6_HEADER                5
-#define ILITEK_KEYINFO_FORMAT_LENGTH            5
-#define ILITEK_HW_KEY_MODE                      2
+#define ILITEK_KEYINFO_V3_HEADER			4
+#define ILITEK_KEYINFO_V6_HEADER			5
+#define ILITEK_KEYINFO_FORMAT_LENGTH			5
+#define ILITEK_HW_KEY_MODE				2
 
 //Access Slave
 #define PROTOCOL_V6_ACCESS_SLAVE_SET_APMODE		0xC1
 #define PROTOCOL_V6_ACCESS_SLAVE_SET_BLMODE		0xC2
 #define PROTOCOL_V6_ACCESS_SLAVE_PROGRAM		0xC3
 //define ILITEK USB_HID VID
-#define ILITEK_VENDOR_ID						0x222A
-#define OTHER_VENDOR_ID	    				    0x04E7
-#define ILITEK_BL_PRODUCT_ID					0x0010
+#define ILITEK_VENDOR_ID				0x222A
+#define OTHER_VENDOR_ID					0x04E7
+#define ILITEK_BL_PRODUCT_ID				0x0010
 
-#define RDValue_MCUKernel_CDCVersion_10bit2301_	0x06
-#define RDValue_MCUKernel_CDCVersion_08bit2301_	0x07
-#define RDValue_MCUKernel_CDCVersion_10bit2115_	0x08
-#define RDValue_MCUKernel_CDCVersion_08bit2115_	0x09
-#define RDValue_MCUKernel_CDCVersion_10bit2117_	0x0A
-#define RDValue_MCUKernel_CDCVersion_8bit2315_	0x0B
-#define RDValue_MCUKernel_CDCVersion_16bit2510_	0x0D
+#define RDValue_MCUKernel_CDCVersion_10bit2301_		0x06
+#define RDValue_MCUKernel_CDCVersion_08bit2301_		0x07
+#define RDValue_MCUKernel_CDCVersion_10bit2115_		0x08
+#define RDValue_MCUKernel_CDCVersion_08bit2115_		0x09
+#define RDValue_MCUKernel_CDCVersion_10bit2117_		0x0A
+#define RDValue_MCUKernel_CDCVersion_8bit2315_		0x0B
+#define RDValue_MCUKernel_CDCVersion_16bit2510_		0x0D
 
 //define Mode Control value
 #define ENTER_NORMAL_MODE                       0
@@ -292,10 +322,18 @@
 
 /* Extern typedef -----------------------------------------------------------*/
 /* Extern macro -------------------------------------------------------------*/
-#define PRINTFTEST                  printf("%s,%d,----Test----\n",__func__, __LINE__);
+#define PRINTFTEST(f_, ...)					\
+	do {							\
+		LD_MSG("[%s][%d][Test] "f_,			\
+			__func__, __LINE__, ##__VA_ARGS__);	\
+	} while (false)
+
 /* Extern variables ---------------------------------------------------------*/
+extern FILE *log_file;
+extern int dbg_level;
+extern bool use_log_file;
+
 /* Extern function prototypes -----------------------------------------------*/
 /* Extern functions ---------------------------------------------------------*/
-
 
 #endif

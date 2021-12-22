@@ -5,9 +5,10 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
+
 #ifndef _ILITEK_MAIN_C_
 #define _ILITEK_MAIN_C_
 
@@ -15,23 +16,23 @@
 #include "ILITek_Protocol.h"
 #include "ILITek_CMDDefine.h"
 #include "ILITek_Device.h"
-#include "ILITek_DebugTool_3X.h"
+#include "ILITek_Debug.h"
+#include "ILITek_Wifi.h"
 #include "ILITek_Main.h"
 #include "API/ILITek_Frequency.h"
 #include "API/ILITek_RawData.h"
 #include "API/ILITek_SensorTest.h"
 #include "API/ILITek_Upgrade.h"
+#include "API/ILITek_MpResult.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <arpa/inet.h>
-//struct timeval tv;
-//struct timezone tz;
-//__time_t basetime;
+
 /* Private define ------------------------------------------------------------*/
 #define FUNC_CMD_LEN 	20
 #define FUNC_STR_LEN 	100
-#define FUNC_NUM 		20 // size of Function
+#define FUNC_NUM 	30 // size of Function
 #define INTERFACE_NUM	2
 /* Private macro ------------------------------------------------------------*/
 #define LF	0x0A
@@ -85,7 +86,7 @@
 #define FW_UPDATE_DESC		"Run FW update"
 //daemon function format	Interface, Protocol, Device, Addr, Ctrl_para1, Ctrl_para2, Ctrl_para3
 #define	FW_UPDATE_USB	{ "USB", "V3/V6", "null", "null", "Hex Path", "[Version]", "" }
-#define	FW_UPDATE_I2C	{ "I2C",  "V3/V6", "/dev/ilitek_ctrl", "41", "Hex Path", "[Version]", "" }
+#define	FW_UPDATE_I2C	{ "I2C", "V3/V6", "/dev/ilitek_ctrl", "41", "Hex Path", "[Version]", "" }
 
 #define CONSOLE_DESC		"Run ILITEK CMD"
 //daemon function format	Interface, Write len, Read len, Write Data
@@ -106,6 +107,11 @@
 //daemon function format	Interface, Protocol, Device, Addr, Ctrl_para1, Ctrl_para2, Ctrl_para3
 #define	CTRL_CDC_USB	{ "USB", "V3/V6", "null", "null", "set CDC type", "Frames", "" }
 #define	CTRL_CDC_I2C	{ "I2C", "V3/V6", "/dev/ilitek_ctrl", "41", "set CDC type", "Frames", "" }
+
+#define MP_RESULT_DESC	"Read MP Result"
+//daemon function format	Interface, Protocol, Device, Addr, Ctrl_para1, Ctrl_para2, Ctrl_para3
+#define	MP_RESULT_USB	{ "USB", "V3/V6", "null", "null", "", "", "" }
+#define	MP_RESULT_I2C	{ "I2C", "V3/V6", "/dev/ilitek_ctrl", "41", "", "", "" }
 
 #define EXC_DESC		"Run monitor extension (USB only)"
 //daemon function format	Interface, Protocol, Device, Addr, Ctrl_para1, Ctrl_para2, Ctrl_para3
@@ -132,7 +138,13 @@
 #define	STU_USB		{ "USB", "V3", "null", "null", "", "", "" }
 #define	STU_I2C		{ "I2C", "V3", "/dev/ilitek_ctrl", "41", "", "", "" }
 
-#define REMOTE_DESC		"Show Remote use"
+#define WIFI_DESC		"for Remonte/Wifi use"
+#define	WIFI_USB	{ "USB", "V3/V6", "null", "null", "Server IP", "", "" }
+#define	WIFI_I2C	{ "I2C", "V3/V6", "/dev/ilitek_ctrl", "41", "Server IP", "", "" }
+
+#define Test_ChangeMode_DESC	"for Linux Daemon Functional Test use"
+#define	Test_ChangeMode_USB	{ "USB", "V3/V6", "null", "null", "", "", "" }
+#define	Test_ChangeMode_I2C	{ "I2C", "V3/V6", "/dev/ilitek_ctrl", "41", "", "", "" }
 
 #define READFLASH_DESC		"Show Flash data"
 //daemon function format	connect IP
@@ -149,15 +161,18 @@ int Func_Frequency(int argc, char *argv[]);
 int Func_FWUpgrade(int argc, char *argv[]);
 int Func_Console(int argc, char *argv[]);
 int Func_Script(int argc, char *argv[]);
-int Func_Remote(int argc, char *argv[]);
 int Func_ReadFlash(int argc, char *argv[]);
 int Func_CtrlMode(int argc, char *argv[]);
+int Func_MpResult(int argc, char *argv[]);
 int Func_CDC(int argc, char *argv[]);
 int Func_Exu(int argc, char *argv[]);
 int Func_Cou(int argc, char *argv[]);
 int Func_Fcu(int argc, char *argv[]);
 int Func_Sru(int argc, char *argv[]);
 int Func_Stu(int argc, char *argv[]);
+int Func_Wifi(int argc, char *argv[]);
+int Func_Test_ChangeMode(int argc, char *argv[]);
+
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -196,46 +211,90 @@ S_FUNC_MAP au8FuncStrs[] =
 	{"Console",		Func_Console,		CONSOLE_DESC,		{CONSOLE_USB, CONSOLE_I2C},},
 	{"Script",		Func_Script,		SCRIPT_DESC,		{SCRIPT_USB, SCRIPT_I2C},},
 	{"ControlMode",		Func_CtrlMode,		CTRL_MODE_DESC,		{CTRL_MODE_USB, CTRL_MODE_I2C},},
-	{"CDC" ,		Func_CDC,		CDC_DESC,		{CTRL_MODE_USB, CTRL_MODE_I2C},},
+	{"CDC",			Func_CDC,		CDC_DESC,		{CTRL_CDC_USB, CTRL_CDC_I2C},},
+	{"MpResult",		Func_MpResult,		MP_RESULT_DESC,		{MP_RESULT_USB, MP_RESULT_I2C},},
 	{"-exu",		Func_Exu,		EXC_DESC,		{EXC_USB, EXC_I2C},},
 	{"-cou",		Func_Cou,		COU_DESC,		{COU_USB, COU_I2C},},
 	{"-fcu",		Func_Fcu,		FCU_DESC,		{FCU_USB, FCU_I2C},},
 	{"-sru",		Func_Sru,		SRU_DESC,		{SRU_USB, SRU_I2C},},
 	{"-stu",		Func_Stu,		STU_DESC,		{STU_USB, STU_I2C},},
-	{"Remote",		Func_Remote,		REMOTE_DESC,		{},},
 	{"ReadFlash",		Func_ReadFlash,		READFLASH_DESC,		{},},
+	{"Wifi",		Func_Wifi,		WIFI_DESC,		{WIFI_USB, WIFI_I2C},},
+	{"Test_ChangeMode",	Func_Test_ChangeMode,	Test_ChangeMode_DESC,	{Test_ChangeMode_USB, Test_ChangeMode_I2C},},
 };
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
 /* Private functions ---------------------------------------------------------*/
+int Func_Test_ChangeMode(int argc, char *argv[])
+{
+	int i;
+	int error = 0;
+
+	LD_MSG("[%s] start\n", __func__);
+
+	for (i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "--BL"))
+			error = ChangeToBootloader();
+		else if (!strcmp(argv[i], "--AP"))
+			error = ChangeToAPMode();
+	}
+
+	return error;
+}
+
 int Func_Chrome(int argc, char *argv[])
 {
 	int ret = _FAIL;
 
-	if (viSetTestMode(true))
+	UNUSED(argc);
+	UNUSED(argv);
+
+	if (viSetTestMode(true, 0))
 		return _FAIL;
 	if (GetFWVersion() != _FAIL)
 		ret = _SUCCESS;
-	if (viSetTestMode(false))
+	if (viSetTestMode(false, 0))
 		return _FAIL;
 	return ret;
 }
 
 int Func_Debug(int argc, char *argv[])
 {
-	return _UNKNOWN;
+	int ret = _FAIL;
+
+	UNUSED(argv);
+
+	if (argc >= 6)
+		ret = Debug_Main();
+
+	return ret;
 }
 
 int Func_PanelInfo(int argc, char *argv[])
 {
 	int ret = _FAIL;
 
+	UNUSED(argv);
+
 	if ((inConnectStyle == _ConnectStyle_I2C_ && argc >= 6) ||
 	    (inConnectStyle == _ConnectStyle_USB_ && argc >= 4) ||
-	    inConnectStyle == _ConnectStyle_I2CHID_)
+	    (inConnectStyle == _ConnectStyle_I2CHID_ && argc >= 4))
 		ret = viGetPanelInfor();
+	return ret;
+}
+
+int Func_MpResult(int argc, char *argv[])
+{
+	int ret = _FAIL;
+
+	UNUSED(argv);
+
+	if ((inConnectStyle == _ConnectStyle_I2C_ && argc >= 6) ||
+	    (inConnectStyle == _ConnectStyle_USB_ && argc >= 4) ||
+	    (inConnectStyle == _ConnectStyle_I2CHID_&& argc >= 4))
+		ret = viGetMpResult();
 	return ret;
 }
 
@@ -303,40 +362,65 @@ int Func_Frequency(int argc, char *argv[])
 	int ret = _FAIL;
 
 	if (argc >= 8) {
-		PRINTF("%s,%d,start:%d,end:%d,step:%d\n", __func__, __LINE__, atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
+		LD_MSG("[%s] start:%d, end:%d, step:%d\n", __func__,
+			atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
 		ret = viRunFre(argv);
 	}
 	return ret;
 }
 
-extern int ilitek_fd;
+void check_upgrade_args(int argc, char *argv[])
+{
+	int i;
+
+	upg.force_update = false;
+	upg.args_fw_ver_check = false;
+
+	for (i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "--force-upgrade")) {
+			upg.force_update = true;
+		} else if (!strncmp(argv[i], "--fw-ver=", 9)) {
+			upg.args_fw_ver_check = true;
+			upg.args_len = sscanf(argv[i], "--fw-ver=%hhu.%hhu.%hhu.%hhu.%hhu.%hhu.%hhu.%hhu",
+				upg.args_fw_ver, upg.args_fw_ver + 1,
+				upg.args_fw_ver + 2, upg.args_fw_ver + 3,
+				upg.args_fw_ver + 4, upg.args_fw_ver + 5,
+				upg.args_fw_ver + 6, upg.args_fw_ver + 7);
+		}
+	}
+
+	LD_MSG("force upgrade: %d\n", upg.force_update);
+	LD_MSG("fw check: %d, args len: %d, fw: %hhu.%hhu.%hhu.%hhu.%hhu.%hhu.%hhu.%hhu\n",
+		upg.args_fw_ver_check, upg.args_len, upg.args_fw_ver[0],
+		upg.args_fw_ver[1], upg.args_fw_ver[2], upg.args_fw_ver[3],
+		upg.args_fw_ver[4], upg.args_fw_ver[5], upg.args_fw_ver[6],
+		upg.args_fw_ver[7]);
+}
+
+
 int Func_FWUpgrade(int argc, char *argv[])
 {
-	char *Version = NULL;
-	unsigned char *filename;
-	int ret = _FAIL;
+	char filename[UPGRAD_FILE_PATH_SIZE];
 
-	filename = (unsigned char *)malloc(UPGRAD_FILE_PATH_SIZE);
-	memset(filename, 0x0, UPGRAD_FILE_PATH_SIZE);
-	switch_irq(0);
-	if (argc >= 7) {
-		if (argc >= 8)
-			Version = argv[7];
-		strcat((char *)filename, argv[6]);
-		PRINTF("Hex filename:%s\n", filename);
-		ret = viRunFirmwareUpgrade(filename, Version);
-	}
-	free(filename);
-	switch_irq(1);
-	return ret;
+	if (argc < 7)
+		return _FAIL;
 
+	memset(filename, 0, UPGRAD_FILE_PATH_SIZE);
+
+	strcpy(filename, argv[6]);
+	LD_MSG("Hex filename:%s\n", filename);
+
+	check_upgrade_args(argc, argv);
+
+	return viRunFiremwareUpgrade(filename);
 }
+
 
 int Func_Console(int argc, char *argv[])
 {
 	int ret = _FAIL;
 
-	if (argc >= 6)
+	if (argc >= 9)
 		ret = viConsoleData(argv);
 	return ret;
 }
@@ -350,12 +434,12 @@ int Func_Script(int argc, char *argv[])
 	return ret;
 }
 
-int Func_Remote(int argc, char *argv[])
+int Func_Wifi(int argc, char *argv[])
 {
 	int ret = _FAIL;
 
 	if (argc >= 7)
-		ret = viRemote(argv);
+		ret = Wifi_Main(argv[6]);
 	return ret;
 }
 
@@ -365,27 +449,25 @@ int Func_ReadFlash(int argc, char *argv[])
 	int start_addr = 0;
 	int read_len = 0;
 
-	//start_addr = atoi(argv[6]);
+	UNUSED(argc);
+
 	sscanf(argv[6], "%x", &start_addr);
-	//read_len = atoi(argv[7]);
 	sscanf(argv[7], "%x", &read_len);
-	PRINTF("Read Flash, Start Address:0x%x, End Address:0x%x, Read Lenght:%d\n",
-			start_addr, start_addr + read_len - 1, read_len);
+	LD_MSG("Read Flash, Start Address:0x%x, End Address:0x%x, Read Lenght:%d\n",
+		start_addr, start_addr + read_len - 1, read_len);
 	if (inProtocolStyle == _Protocol_V6_) {
-		PRINTF("Read Flash(V6)\n");
 		if (GetFlashData_V6(start_addr, read_len, argv[8]) == _SUCCESS) {
 			ret = _SUCCESS;
-			PRINTF("Read Flash SUCCESS\n");
+			LD_MSG("Read Flash SUCCESS\n");
 		} else {
-			PRINTF("Read Flash FAIL\n");
+			LD_ERR("Read Flash FAIL\n");
 		}
 	} else if (inProtocolStyle == _Protocol_V3_) {
-		PRINTF("Read Flash(V3)\n");
 		if (GetFlashData_V3(start_addr, read_len, argv[8]) == _SUCCESS) {
 			ret = _SUCCESS;
-			PRINTF("Read Flash SUCCESS\n");
+			LD_MSG("Read Flash SUCCESS\n");
 		} else {
-			PRINTF("Read Flash FAIL\n");
+			LD_ERR("Read Flash FAIL\n");
 		}
 	}
 
@@ -404,127 +486,147 @@ int Func_CtrlMode(int argc, char *argv[])
 
 int Func_Exu(int argc, char *argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	return monitor_extend();
 }
 
 int Func_Cou(int argc, char *argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	return monitor_Copy();
 }
 
 int Func_Fcu(int argc, char *argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	return check_status();
 }
 
 int Func_Sru(int argc, char *argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	return software_reset();
 
 }
+
 int Func_Stu(int argc, char *argv[])
 {
+	UNUSED(argc);
+
 	return switch_testmode((uint8_t *)argv[2], (uint8_t *)argv[3]);
 }
 
-int PrintInfor(char *argv[])
+int print_tool_info(char *argv[])
 {
-	unsigned char u8ID = 0;
-	int ret = _FAIL;
+	int i, j, ret = _FAIL;
 
-	if (strcmp(argv[1], "-v") == 0) {
-		PRINTF(TOOL_VERSION);
+	if (!strcmp(argv[1], "-v")) {
+		LD_MSG("%s\n", TOOL_VERSION);
 		ret = _SUCCESS;
-	} else if (strcmp(argv[1], "-h") == 0 ||
-		   strcmp(argv[1], "--help") == 0 ||
-		   strcmp(argv[1], "-help") == 0) {
-		PRINTF("%-20s %s\n", "Test Function", "Function Descriotion");
-		for ( u8ID = 0; u8ID < FUNC_NUM; u8ID++ )
-			PRINTF("%-20s %s\n", au8FuncStrs[u8ID].FuncStrs, au8FuncStrs[u8ID].FuncDesc);
+	} else if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help") ||
+		   !strcmp(argv[1], "-help")) {
+		LD_MSG("%-20s %s\n", "Test Function", "Function Descriotion");
+		for (i = 0; i < FUNC_NUM; i++ )
+			LD_MSG("%-20s %s\n", au8FuncStrs[i].FuncStrs, au8FuncStrs[i].FuncDesc);
 		ret = _SUCCESS;
-	} else {
-		ret = _FAIL;
+	} else if (!strcmp(argv[2], "-h") || !strcmp(argv[2], "--help") ||
+		   !strcmp(argv[2], "-help")) {
+		for (i = 0; i < FUNC_NUM; i++ ) {
+			if (!strcmp(argv[1], au8FuncStrs[i].FuncStrs)) {
+				LD_MSG("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
+				       "----------------", "----------------", "----------------", "----------------",
+				       "----------------", "----------------", "----------------", "----------------");
+				LD_MSG("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
+				       "Function", "Interface", "Protocol", "Device", "I2C address",
+				       "Ctrl param1", "Ctrl param2", "Ctrl param3");
+				LD_MSG("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
+				       "----------------", "----------------", "----------------", "----------------",
+				       "----------------", "----------------", "----------------", "----------------");
+				for (j = 0; j < INTERFACE_NUM; j++) {
+					LD_MSG("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
+					       au8FuncStrs[i].FuncStrs,
+					       au8FuncStrs[i].Para[j].Interface,
+					       au8FuncStrs[i].Para[j].Protocol,
+					       au8FuncStrs[i].Para[j].Device,
+					       au8FuncStrs[i].Para[j].Addr,
+					       au8FuncStrs[i].Para[j].Ctrl_para1,
+					       au8FuncStrs[i].Para[j].Ctrl_para2,
+					       au8FuncStrs[i].Para[j].Ctrl_para3);
+					LD_MSG("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
+					       "----------------", "----------------", "----------------", "----------------",
+					       "----------------", "----------------", "----------------", "----------------");
+				}
+				ret = _SUCCESS;
+				break;
+			}
+		}
 	}
+
 	return ret;
 }
 
 int viGetPanelInfor_V3()
 {
-	int ret = _FAIL;
-
-	if (GetProtocol() != _FAIL &&
-	    GetKernelVer() != _FAIL &&
-	    GetFWVersion() != _FAIL &&
-	    GetICMode() != _FAIL &&
-	    GetCoreVersion() != _FAIL &&
-	    GetFWMode() != _FAIL &&
-	    PanelInfor_V3() != _FAIL)
-		ret = _SUCCESS;
+	if (GetProtocol() < 0 || GetKernelVer() < 0 || GetFWVersion() < 0 ||
+	    GetICMode() < 0)
+		return _FAIL;
 
 	/* return success if it's BL mode */
-	if (ICMode == 0x55)
+	if (ICMode == 0x55) {
+		LD_ERR("FW in BL mode, wait for FWUpgrade...\n");
 		return _SUCCESS;
-	return ret;
+	}
+
+	if (GetCoreVersion() < 0 || GetFWMode() < 0 || PanelInfor_V3() < 0 ||
+	    GetCRC_V3() < 0)
+	    	return _FAIL;
+
+	return _SUCCESS;
 }
 
 int viGetPanelInfor_V6()
 {
-	int ret = _FAIL;
-
-	if (GetProtocol() != _FAIL &&
-	    GetKernelVer() != _FAIL &&
-	    GetFWVersion() != _FAIL &&
-	    GetICMode() != _FAIL &&
-	    GetCoreVersion() != _FAIL &&
-	    GetFWMode() != _FAIL &&
-	    PanelInfor_V6() != _FAIL)
-		ret = _SUCCESS;
+	if (GetProtocol() < 0 || GetKernelVer() < 0 || GetFWVersion() < 0 ||
+	    GetICMode() < 0)
+		return _FAIL;
 
 	/* return success if it's BL mode */
-	if (ICMode == 0x55)
+	if (ICMode == 0x55) {
+		LD_ERR("FW in BL mode, wait for FWUpgrade...\n");
 		return _SUCCESS;
+	}
 
-	return ret;
+	if (GetCoreVersion() < 0 || GetFWMode() < 0 || PanelInfor_V6() < 0 ||
+	    GetCRC_V6() < 0)
+		return _FAIL;
+
+	return _SUCCESS;
 }
 
-int viEnterTestMode()
-{
-	int ret = _FAIL;
-
-	if (inProtocolStyle == _Protocol_V3_)
-		ret = EnterTestMode();
-	else if (inProtocolStyle == _Protocol_V6_)
-		ret = ModeCtrl_V6(ENTER_SUSPEND_MODE, ENABLE_ENGINEER);
-	return ret;
-}
-
-int viExitTestMode()
-{
-	int ret = _FAIL;
-
-	if (inProtocolStyle == _Protocol_V3_)
-		ret = ExitTestMode();
-	else if (inProtocolStyle == _Protocol_V6_)
-		ret = ModeCtrl_V6(ENTER_NORMAL_MODE, DISABLE_ENGINEER);
-	return ret;
-}
-
-int viSetTestMode(bool setTest)
+int viSetTestMode(bool setTest, int delay_ms)
 {
 	int ret = _FAIL;
 
 	if (inProtocolStyle == _Protocol_V3_) {
 		if (setTest)
-			ret = EnterTestMode();
+			ret = EnterTestMode(delay_ms);
 		else
-			ret = ExitTestMode();
+			ret = ExitTestMode(delay_ms);
 	} else if (inProtocolStyle == _Protocol_V6_) {
 		if (setTest)
-			ret = ModeCtrl_V6_nowait(ENTER_SUSPEND_MODE,
-						 ENABLE_ENGINEER);
+			ret = ModeCtrl_V6(ENTER_SUSPEND_MODE,
+					  ENABLE_ENGINEER, delay_ms);
 		else
-			ret = ModeCtrl_V6_nowait(ENTER_NORMAL_MODE,
-						 DISABLE_ENGINEER);
+			ret = ModeCtrl_V6(ENTER_NORMAL_MODE,
+					  DISABLE_ENGINEER, delay_ms);
 	}
 	return ret;
 }
@@ -533,11 +635,12 @@ int viGetPanelInfor()
 {
 	int ret = _FAIL;
 
-	PRINTF(TOOL_VERSION);
+	LD_MSG("%s\n", TOOL_VERSION);
 	if (inProtocolStyle == _Protocol_V3_)
 		ret = viGetPanelInfor_V3();
 	else if (inProtocolStyle == _Protocol_V6_)
 		ret = viGetPanelInfor_V6();
+
 	return ret;
 }
 
@@ -547,33 +650,34 @@ int ChangeToBootloader()
 	int count;
 
 	for (count = 0; count < 5; count++) {
-		//read current op mode
 		ret = GetICMode();
 		if (ICMode != OP_MODE_BOOTLOADER) {
-			//set op mode as bootloader if current op mode is not boorloader
 			ret = SetProgramKey();
 			usleep(20000);
 
-			//send changing bootloader command
 			ret = ChangeTOBL();
+
+			/*
+			 * Lego's old BL may trigger unexpected INT after 0xC2,
+			 * so make I2C driver handle it ASAP
+			 */
+			if (support_INT_ack && inProtocolStyle == _Protocol_V6_)
+				switch_irq(1);
 
 			if (inConnectStyle == _ConnectStyle_I2CHID_)
 				usleep(1000000 + count * 100000);
 			else
 				usleep(210000 + count * 20000);
 
-			if (inConnectStyle != _ConnectStyle_I2C_ &&
-					inConnectStyle != _ConnectStyle_I2CHID_)
+			if (inConnectStyle == _ConnectStyle_USB_)
 				break;
 		} else {
-			PRINTF("%s, current op mode is bootloader mode, can update firmware(%u/5)\n", __func__, count);
+			LD_MSG("%s, current op mode is bootloader mode, can update firmware(%u/5)\n", __func__, count);
 			break;
 		}
 	}
 
-	//check again
-	if (inConnectStyle != _ConnectStyle_I2C_ &&
-			inConnectStyle != _ConnectStyle_I2CHID_) {
+	if (inConnectStyle == _ConnectStyle_USB_) {
 		CloseDevice();
 		usleep(500000);
 		if (inProtocolStyle == _Protocol_V6_)
@@ -583,21 +687,20 @@ int ChangeToBootloader()
 				if (is_usb_hid_old_bl == 1)
 					break;
 
-				//read current op mode
 				ret = GetICMode();
 				if (ICMode != OP_MODE_BOOTLOADER) {
-					PRINTF("%s, currently in AP mode, wait 5 sec, after change to bootloader mode, 0x%X, %u\n",
+					LD_MSG("%s, currently in AP mode, wait 5 sec, after change to bootloader mode, 0x%X, %u\n",
 							__func__, ICMode, count);
 					usleep(5000000);
 					if (count == 12)
 						return _FAIL;
 				} else {
-					PRINTF("%s, check again, currently bootloader mode, can update firmware, 0x%X, ret=%u\n",
+					LD_MSG("%s, check again, currently bootloader mode, can update firmware, 0x%X, ret=%u\n",
 							__func__, ICMode, ret);
 					break;
 				}
 			} else {
-				PRINTF("%s, currently in AP mode, wait 5 sec, after change to bootloader mode, %u\n",
+				LD_MSG("%s, currently in AP mode, wait 5 sec, after change to bootloader mode, %u\n",
 						__func__, count);
 				usleep(5000000);
 				if (count == 12)
@@ -605,6 +708,12 @@ int ChangeToBootloader()
 			}
 		}
 	}
+
+	GetProtocol_in_BL();
+
+	if (inProtocolStyle == _Protocol_V6_)
+		GetFWVersion_BL();
+
 	return _SUCCESS;
 }
 
@@ -627,7 +736,7 @@ int ChangeToAPMode()
 			break;
 		ret = GetICMode();
 		if (ICMode == OP_MODE_APPLICATION) {
-			PRINTF("%s, current op mode is AP mode(%u/5), 0x%X, ret=%u\n", __func__, count, ICMode, ret);
+			LD_MSG("%s, current op mode is AP mode(%u/5), 0x%X, ret=%u\n", __func__, count, ICMode, ret);
 			return _SUCCESS;
 		}
 	}
@@ -641,25 +750,25 @@ int ChangeToAPMode()
 				//read current op mode
 				ret = GetICMode();
 				if (ICMode == OP_MODE_APPLICATION) {
-					PRINTF("%s, upgrade firmware finish\n", __func__);
+					LD_MSG("%s, upgrade firmware finish\n", __func__);
 					return _SUCCESS;
 				} else {
-					PRINTF("%s, currently in BL mode, wait 5 sec, after change to AP mode, %u\n",
+					LD_MSG("%s, currently in BL mode, wait 5 sec, after change to AP mode, %u\n",
 							__func__, count);
 					usleep(5000000);
 
 					if (count == 12) {
-						PRINTF("%s, upgrade firmware failed\n", __func__);
+						LD_ERR("%s, upgrade firmware failed\n", __func__);
 						return _FAIL;
 					}
 				}
 			} else {
-				PRINTF("%s, currently in BL mode, wait 5 sec, after change to AP mode, %u\n",
+				LD_MSG("%s, currently in BL mode, wait 5 sec, after change to AP mode, %u\n",
 						__func__, count);
 				usleep(5000000);
 
 				if (count == 12) {
-					PRINTF("%s, upgrade firmware failed\n", __func__);
+					LD_ERR("%s, upgrade firmware failed\n", __func__);
 					return _FAIL;
 				}
 			}
@@ -684,28 +793,26 @@ int DealWithFunctions(int argc, char *argv[])
 	unsigned char u8ID = 0;
 	int ret = _FAIL;
 
-	PRINTF("Para:%s\n", argv[2]);
+	LD_MSG("Para:%s\n", argv[2]);
 
 	for (u8ID = 0; u8ID < FUNC_NUM; u8ID++) {
 		if (!strcmp(argv[1], au8FuncStrs[u8ID].FuncStrs)) {
 			ret = au8FuncStrs[u8ID].pFuncPoint(argc, argv);
-			if (ret == _FAIL)
-				PRINTF("Error! %s Failed!!\n", au8FuncStrs[u8ID].FuncStrs);
-			else if (ret == _UNKNOWN)
-				PRINTF(" %s not yet been down!!\n", au8FuncStrs[u8ID].FuncStrs);
+			if (ret < 0)
+				LD_ERR("Error! %s Failed!!\n", au8FuncStrs[u8ID].FuncStrs);
 			else
-				PRINTF("%s, Success!!\n", au8FuncStrs[u8ID].FuncStrs);
+				LD_MSG("%s, Success!!\n", au8FuncStrs[u8ID].FuncStrs);
 		}
 	}
 	return ret;
 }
 
-unsigned char chartohex(unsigned char *str)
+unsigned char chartohex(char *str)
 {
 	unsigned int temp;
 
-	sscanf((char *)str, "%x", &temp);
-	PRINTF("the temp is %x\n", temp);
+	sscanf(str, "%x", &temp);
+	LD_MSG("the temp is %x\n", temp);
 	return temp;
 }
 
@@ -714,25 +821,24 @@ int viConsoleData(char *argv[])
 	int count = 0;
 	int inWlen = 0, inRlen = 0;
 	uint8_t Wbuff[64] = {0}, Rbuff[64] = {0};
-	int offset = 0;
 
-	if (inConnectStyle == _ConnectStyle_I2CHID_)
-		offset = 1;
-	inWlen = atoi(argv[3 + offset]);
-	inRlen = atoi(argv[4 + offset]);
+	inWlen = atoi(argv[6]);
+	inRlen = atoi(argv[7]);
 
 
 	for (count = 0; count < inWlen; count++)
-		Wbuff[count] = (unsigned char)chartohex((unsigned char *)argv[5 + count + offset]);
+		Wbuff[count] = (unsigned char)chartohex(argv[8 + count]);
 
 	if (TransferData(Wbuff, inWlen, Rbuff, inRlen, 1000) < 0)
 		return _FAIL;
 
-	PRINTF("%s, Return data: ", __func__);
+	LD_MSG("%s, Return data: ", __func__);
 	for (count = 0; count < inRlen; count++) {
 		tempbuff[count] = Rbuff[count];
-		PRINTF("%.2X.", tempbuff[count]);
+		LD_MSG("%.2X.", tempbuff[count]);
 	}
+	LD_MSG("\n");
+
 	return _SUCCESS;
 }
 
@@ -745,11 +851,11 @@ int viScript(char *argv[])
 	unsigned char u8_chk_cnt = 0;
 	int inWlen = 0, inRlen = 0;
 
-	PRINTF("Script filename:%s\n", argv[6]);
+	LD_MSG("Script filename:%s\n", argv[6]);
 
 	fp = fopen(argv[6], "r");
 	if (fp == NULL) {
-		PRINTF("%s, cannot open %s file\n", __func__, argv[6]);
+		LD_ERR("%s, cannot open %s file\n", __func__, argv[6]);
 		return _FAIL;
 	}
 
@@ -768,10 +874,10 @@ int viScript(char *argv[])
 				}
 				if (TransferData(buff, inWlen, buff, inRlen, 1000) < 0)
 					return _FAIL;
-				PRINTF("%s, Return data: ", __func__);
+				LD_MSG("%s, Return data: ", __func__);
 				for (i=0; i<inRlen; i++) {
 					tempbuff[i] = buff[i];
-					PRINTF("%.2X.", tempbuff[i]);
+					LD_MSG("%.2X.", tempbuff[i]);
 				}
 			} else if (CHK_DELAY(u8_chk_buf)) {
 				u16_delay_time = 1;
@@ -786,313 +892,11 @@ int viScript(char *argv[])
 	return _SUCCESS;
 }
 
-int help_chk(char *argv[])
-{
-	unsigned char u8ID = 0;
-	unsigned char u8i=0;
-	int ret = _FAIL;
-
-	if (strcmp(argv[2], "-h") == 0 ||
-	    strcmp(argv[2], "--help") == 0 ||
-	    strcmp(argv[2], "-help") == 0) {
-		for ( u8ID = 0; u8ID < FUNC_NUM; u8ID++ ) {
-			if (strcmp(argv[1], au8FuncStrs[u8ID].FuncStrs) == 0) {
-				PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-				       "----------------", "----------------", "----------------", "----------------",
-				       "----------------", "----------------", "----------------", "----------------");
-				PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-				       "Function", "Interface", "Protocol", "Device", "I2C address",
-				       "Ctrl param1", "Ctrl param2", "Ctrl param3");
-				PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-				       "----------------", "----------------", "----------------", "----------------",
-				       "----------------", "----------------", "----------------", "----------------");
-				for (u8i=0;u8i<INTERFACE_NUM;u8i++) {
-					PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-					       au8FuncStrs[u8ID].FuncStrs, au8FuncStrs[u8ID].Para[u8i].Interface,
-					       au8FuncStrs[u8ID].Para[u8i].Protocol, au8FuncStrs[u8ID].Para[u8i].Device,
-					       au8FuncStrs[u8ID].Para[u8i].Addr, au8FuncStrs[u8ID].Para[u8i].Ctrl_para1,
-					       au8FuncStrs[u8ID].Para[u8i].Ctrl_para2, au8FuncStrs[u8ID].Para[u8i].Ctrl_para3);
-					PRINTF("%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|%-16s|\n",
-					       "----------------", "----------------", "----------------", "----------------",
-					       "----------------", "----------------", "----------------", "----------------");
-				}
-				ret = _SUCCESS;
-				break;
-			}
-		}
-	}
-	return ret;
-}
-
-int readn(int fd, void *vptr, size_t n)
-{
-	size_t nleft = n;
-	ssize_t nread = 0;
-	unsigned char *ptr = (unsigned char *)vptr;
-
-	while (nleft > 0) {
-		nread = read(fd, ptr, nleft);
-		if (nread == -1) {
-			if (EINTR == errno)
-				nread = 0;
-			else
-				return _FAIL;
-		} else if (nread == 0) {
-			break;
-		}
-		nleft -= nread;
-		ptr += nread;
-	}
-	return n - nleft;
-}
-
-ssize_t recv_peek(int sockfd, void *buf, size_t len)
-{
-	int ret = 0;
-	while (1) {
-		ret = recv(sockfd, buf, len, MSG_PEEK);
-		if (ret == -1 && errno == EINTR)
-			continue;
-		else
-			break;
-	}
-	return ret;
-}
-
-ssize_t readline(int sockfd, void *buf, size_t maxline)
-{
-	int ret;
-	int nread;
-	char *bufp = (char *)buf;
-	int nleft = maxline;
-	int count = 0;
-	int i;
-
-	while (1) {
-		ret = recv_peek(sockfd, bufp, nleft);
-		if (ret < 0)
-			return ret;
-		else if (ret == 0)
-			return ret;
-
-		nread = ret;
-
-		for (i = 0; i < nread; i++) {
-			if (bufp[i] == '\n') {
-				ret = readn(sockfd, bufp, i + 1);
-				if (ret != i + 1)
-					exit(EXIT_FAILURE);
-
-				bufp[i+1] = '\0';
-
-				return ret + count;
-			}
-		}
-
-		if (nread > nleft)
-			exit(EXIT_FAILURE);
-		nleft -= nread;
-		ret = readn(sockfd, bufp, nread);
-		if (ret != nread)
-			exit(EXIT_FAILURE);
-
-		bufp += nread;
-		count += nread;
-	}
-	return _FAIL;
-}
-
-int viRemote(char *argv[])
-{
-	int ret = _SUCCESS, count = 20;
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	char buffer[1024], cmd_split_buffer[1024];
-	int i = 0;
-	int each_self = 0;
-	int buff_data[32768];
-	char str_to_server[32768];
-
-	memset(&server_addr, 0, sizeof(server_addr));
-
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(argv[6]);
-	server_addr.sin_port = htons(17385);
-
-	//connect timeout 20s
-	for (i = 0; i < count; i++) {
-		ret = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
-		if (ret == _SUCCESS) {
-			PRINTF("Connect to Server Success\n");
-			inRemote_Flag = 1;
-			break;
-		} else {
-			PRINTF("Connect to Server Fail, ret = %d\n", ret);
-			if (i == count - 1)
-				return _FAIL;
-			sleep(1);
-		}
-	}
-
-	while (1) {
-		memset(buffer, '\0', sizeof(buffer));
-		//read(sockfd, buffer, sizeof(buffer) - 1);
-		readline(sockfd, buffer, sizeof(buffer));
-		PRINTF("Len = %zu, Read data form server = %s\n", sizeof(buffer), buffer);
-
-		memset(cmd_split_buffer, 0, sizeof(cmd_split_buffer));
-		strcpy(cmd_split_buffer, buffer);
-
-		if (strstr(buffer, ":3") != NULL) {
-			//split cmd
-			int cmd_split[64];
-			int cmd_split_index = 0;
-			char *p = cmd_split_buffer;
-			char *key_point;
-
-			while (p) {
-				while ((key_point = strsep(&p,":,")) != NULL) {
-					//printf("%s\n", key_point);
-					cmd_split[cmd_split_index] = atoi(key_point);
-					cmd_split_index++;
-				}
-			}
-
-			//debug
-			PRINTF("cmd_split_index = %d\n", cmd_split_index);
-			for (i = 0; i < cmd_split_index; i++)
-				PRINTF("cmd_split[%d] = %d\n", i, cmd_split[i]);
-
-			//cmd set to buff
-			for (i = 0; i < cmd_split_index; i++) {
-				//cmd_split[0] is null, I don't know why.....
-				buff[i] = cmd_split[i + 1];
-			}
-
-			if (strstr(buffer, ":3,163,1,60") != NULL) {
-				printf("Cond1 = %s\n", buffer);
-
-				//write/read data to tp
-				int each_first = 1;
-				int total_count = ptl.x_ch * ptl.y_ch * 2;
-
-				if (each_self == 1) {
-					total_count = (ptl.x_ch + ptl.y_ch) * 2;
-					each_self = 0;
-				}
-
-				memset(buff_data, 0, sizeof(buff_data));
-
-				int index = 0;
-
-				do
-				{
-					if (inConnectStyle != _ConnectStyle_I2C_) {
-						if (each_first == 1) {
-							ret = TransferData(buff, cmd_split_index - 2, buff, cmd_split[4], 1000);
-							each_first = 0;
-						} else {
-							ret = TransferData(NULL, 0, buff, cmd_split[4], 1000);
-						}
-					}
-
-					//save data
-					for (i = 0; i < 64; i++) {
-						//printf("buff[%d] = %d\n", i, buff[i]);
-						buff_data[index++] = buff[i];
-					}
-
-					//03,A3,E6,3C,indexX,indexY,xxxxxxxxxxxxx, data 58 count
-					total_count = total_count - 58;
-					//printf("total_count = %d\n", total_count);
-				} while ((total_count) > 0);
-
-				//write data to server
-				//printf("index = %d\n", index);
-				//for (i = 0; i <= index; i++)
-				//{
-				//	printf("buff_data[%d] = %d\n", i, buff_data[i]);
-				//}
-
-				memset(str_to_server, 0, sizeof(str_to_server));
-
-				char temp[64];
-				memset(temp, 0, sizeof(temp));
-
-				strcat(str_to_server, ":");
-
-				for (i = 0; i < index; i++) {
-					if (i == index - 1) {
-						sprintf(temp, "%d:", buff_data[i]);
-						strcat(str_to_server, temp);
-
-						printf("Write data to server = %s\n\n", str_to_server);
-						ret = write(sockfd, str_to_server, sizeof(str_to_server));
-						//printf("ret1 = %d\n", ret);
-					} else {
-						sprintf(temp, "%d,", buff_data[i]);
-						strcat(str_to_server, temp);
-					}
-				}
-			} else {
-				printf("Cond2 = %s\n", buffer);
-
-				//for do self raw data..
-				if (strstr(buffer, ":3,163,4,0,243,6") != NULL)
-					each_self = 1;
-
-				//write/read data to tp
-				if (inConnectStyle != _ConnectStyle_I2C_) {
-					if (cmd_split[4] > 0) {
-						ret = TransferData(buff, cmd_split_index - 2, buff, cmd_split[4], 1000);
-					} else {
-						ret = TransferData(buff, cmd_split_index - 2, NULL, 0, 1000);
-						printf("\n");
-					}
-				}
-
-				//for get ptl.x_ch, ptl.y_ch
-				if (strstr(buffer, ":3,163,1,10,32") != NULL) {
-					ptl.x_ch = buff[4 + 4];
-					ptl.y_ch = buff[5 + 4];
-				}
-
-				//write data to server
-				memset(str_to_server, 0, sizeof(str_to_server));
-				if (cmd_split[4] > 0) {
-					char temp[64];
-					memset(temp, 0, sizeof(temp));
-
-					strcat(str_to_server, ":");
-
-					for (i = 0; i < cmd_split[4] + 4; i++) {
-						if (i == cmd_split[4] + 4 - 1) {
-							sprintf(temp, "%d:", buff[i]);
-							strcat(str_to_server, temp);
-						} else {
-							sprintf(temp, "%d,", buff[i]);
-							strcat(str_to_server, temp);
-						}
-					}
-
-					printf("Write data to server = %s\n\n", str_to_server);
-					ret = write(sockfd, str_to_server, sizeof(str_to_server));
-					//printf("ret2 = %d\n", ret);
-				}
-			}
-		} else {
-			printf("%s, wrong data\n", buffer);
-		}
-	}
-
-	close(sockfd);
-	return _SUCCESS;
-}
-
 int viSwitchMode(int mode)
 {
 	int ret = _FAIL;
 
-	PRINTF(TOOL_VERSION);
+	LD_MSG("%s\n", TOOL_VERSION);
 	if (inProtocolStyle == _Protocol_V3_)
 		ret = viSwitchMode_V3(mode);
 	else if (inProtocolStyle == _Protocol_V6_)
@@ -1100,68 +904,142 @@ int viSwitchMode(int mode)
 	return ret;
 }
 
+FILE *log_file = NULL;
+int dbg_level = LOG_LEVEL_MSG;
+bool use_log_file = false;
+void log_openfile()
+{
+	if (!use_log_file)
+		return;
+
+	time_t rawtime;
+	struct tm *timeinfo;
+	char timebuf[60], log_filename[512];
+	char log_dirname[] = "ilitek_ld_log";
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timebuf, 60, "%Y%m%d_%I%M%S", timeinfo);
+
+	if (access(log_dirname, 0) < 0) {
+		if (mkdir(log_dirname, 0777)) {
+			LD_ERR("create directory %s failed!\n", log_dirname);
+			return;
+		}
+	}
+
+	sprintf(log_filename,"%s/ld_log_%s.txt", log_dirname, timebuf);
+	log_file = fopen(log_filename, "w");
+
+	LD_MSG("*******************************************\n");
+	LD_MSG("************** Start Logging **************\n");
+	LD_MSG("*******************************************\n\n");
+}
+
+void log_closefile()
+{
+	if (!use_log_file || !log_file)
+		return;
+
+	LD_MSG("\n");
+	LD_MSG("*******************************************\n");
+	LD_MSG("************** End of Logging *************\n");
+	LD_MSG("*******************************************\n");
+	fclose(log_file);
+}
+
+bool no_sw_reset = false;
+void check_args(int argc, char *argv[])
+{
+	int i;
+
+	for (i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "--log"))
+			use_log_file = true;
+		else if (!strcmp(argv[i], "--err"))
+			dbg_level = LOG_LEVEL_ERR;
+		else if (!strcmp(argv[i], "--msg"))
+			dbg_level = LOG_LEVEL_MSG;
+		else if (!strcmp(argv[i], "--dbg"))
+			dbg_level = LOG_LEVEL_DBG;
+		else if (!strcmp(argv[i], "--none"))
+			dbg_level = LOG_LEVEL_NONE;
+		else if (!strcmp(argv[i], "--no-reset"))
+			no_sw_reset = true;
+		else if (!strcmp(argv[i], "--reset"))
+			no_sw_reset = false;
+	}
+}
+
+bool support_INT_ack = true;
+void check_INT_ack(int argc, char *argv[])
+{
+	int i;
+	uint32_t driver_ver = 0;
+
+	if (inConnectStyle != _ConnectStyle_I2C_)
+		return;
+
+	driver_ver = get_driver_ver();
+	if (driver_ver < 0x05090004)
+		support_INT_ack = false;
+
+	for (i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "--no-INT-ack"))
+			support_INT_ack = false;
+		else if (!strcmp(argv[i], "--INT-ack"))
+			support_INT_ack = true;
+	}
+
+	LD_MSG("I2C check INT ack: %s\n", (support_INT_ack) ? "ON" : "OFF");
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = _FAIL;
-	unsigned char u8i=0;
 
-	if (PrintInfor(argv) == _SUCCESS) {
+	check_args(argc, argv);
+
+	log_openfile();
+
+	if (print_tool_info(argv) == _SUCCESS) {
 		ret = _SUCCESS;
-	} else if (help_chk(argv) == _SUCCESS) {
-		ret = _SUCCESS;
-	} else if (strcmp(argv[1], "Create") == 0) {
-		PRINTF("%s,%d\n", __func__, __LINE__);
-		SetConnectStyle(argv);
-		PRINTF("%s,%d\n", __func__, __LINE__);
-		InitDevice();
-		PRINTF("%s,%d\n", __func__, __LINE__);
-		if (argc >= 8) {
-			PRINTF("%s,%d\n", __func__, __LINE__);
-			viRunCreateBenchMark_6X(argc, argv);
-			PRINTF("%s,%d\n", __func__, __LINE__);
-		} else {
-			PRINTF("Error! argv Error\n");
-		}
-		CloseDevice();
 	} else if (SetConnectStyle(argv) == _SUCCESS) {
 		if (InitDevice() == _SUCCESS) {
-			switch_irq(0);
-			if (strcmp(argv[1], "Console") &&
-			    strcmp(argv[1], "Chrome"))
-				viEnterTestMode();
+			check_INT_ack(argc, argv);
 
-			if (DealWithFunctions(argc, argv) == _FAIL)
+			switch_irq(0);
+
+			if (strcmp(argv[1], "Console") &&
+			    strcmp(argv[1], "Chrome") &&
+			    strcmp(argv[1], "Debug"))
+				viSetTestMode(true, 100);
+
+			if (DealWithFunctions(argc, argv) < 0)
 				ret = _FAIL;
 			else
 				ret = _SUCCESS;
 
 			if (strcmp(argv[1], "Console") &&
-			    strcmp(argv[1], "Chrome")) {
-				viExitTestMode();
-				if (inConnectStyle != _ConnectStyle_I2CHID_)
-					software_reset();
+			    strcmp(argv[1], "Chrome") &&
+			    strcmp(argv[1], "Debug")) {
+				viSetTestMode(false, 100);
+				software_reset();
 			}
 
 			switch_irq(1);
 			CloseDevice();
 		} else {
-			PRINTF("InitDevice Error\n");
+			LD_ERR("InitDevice Error\n");
 		}
-	} else if (strcmp(argv[1], "Debug") == 0) {
-		if (argc >= 7)
-			vfRunDebug_3X(argv[2], atoi(argv[6]));
-		else
-			PRINTF("Error! argv Error\n");
 	} else {
-		PRINTF("argv Error: \"");
-		for (u8i=0;u8i<argc;u8i++)
-			PRINTF("%s ", argv[u8i]);
-		PRINTF("\"\n");
+		LD_ERR("argv error");
 	}
 
-	PRINTF("main ret = %d\n", ret);
-	// gettimeofday(&tv , &tz);
-	// printf("main end time:%lu.%d\n", tv.tv_sec - basetime, tv.tv_usec);
+	LD_MSG("main ret = %d\n", ret);
+
+	log_closefile();
+
 	return ret;
 }
 

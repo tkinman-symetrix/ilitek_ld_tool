@@ -5,16 +5,20 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
+
 #ifndef INC_ILITEK_DEVICE_H_
 #define INC_ILITEK_DEVICE_H_
 #include <stdint.h>
+#include <stdbool.h>
+#include <arpa/inet.h>
+#include <linux/netlink.h>
 
 //---------------------------------------------------------------
-#define TOOL_VERSION "ILITEK LINUX DAEMON V3.0.5.Test1\n"
-#define REPORT_VERSION  "Report_Format_version  ,0.0.1.0\n"
+#define TOOL_VERSION "ILITEK LINUX DAEMON V3.0.7.4"
+#define REPORT_VERSION  "0.0.1.2"
 
 #ifdef CONFIG_ILITEK_USE_LIBUSB
 #include <usb.h>
@@ -42,26 +46,33 @@ typedef struct _ILIUSB_DEVICE_
 #define REPORT_ID_4096_BYTE      0x030A
 #define TRANS_USB_256_BYTE       256+1
 
-//#define DEBUG_TRANSFER_DATA
-typedef struct _SLAVE_INFO_
-{
-	int CRC_Code_1;
-	int CRC_Code_2;
-	int FW_Ver_1;
-	int FW_Ver_2;
-} SLAVE_INFO;
+#define UNUSED(x) (void)(x)
 
 extern int inConnectStyle;
 extern int inProtocolStyle;
 extern int is_usb_hid_old_bl;
 extern int ILITEK_PID, ILITEK_VID, OTHER_VID;
 
-extern int active_interface;
-
 //---------------------------------------------------------------
-extern int sockfd;
-extern struct sockaddr_in server_addr;
-extern int inRemote_Flag;
+#define get_min(a, b)	(((a) > (b)) ? (b) : (a))
+#define get_max(a, b)	(((a) < (b)) ? (b) : (a))
+
+struct Netlink_Handle {
+	int fd;
+	int data_size;
+	struct sockaddr_nl src_addr;
+	struct sockaddr_nl dest_addr;
+	struct nlmsghdr *nlh;
+	struct msghdr msg;
+	struct iovec iov;
+};
+
+extern uint16_t get_le16(const uint8_t *p);
+extern int netlink_connect(struct Netlink_Handle *nl, const char *str,
+			   uint32_t size, uint32_t timeout_ms);
+extern void netlink_disconnect(struct Netlink_Handle *nl, const char *str);
+extern int netlink_recv(struct Netlink_Handle *nl, char *buf);
+
 //---------------------------------------------------------------
 extern unsigned char buff[TRANSFER_MAX_BUFFER];
 extern unsigned char tempbuff[256];
@@ -77,16 +88,30 @@ extern unsigned char ucSensorTestResult;
 extern unsigned char ucSignedDatas;
 //----------------------------------------------------------------
 extern unsigned int hex_2_dec(char *hex, int len);
+unsigned int UpdateCRC(unsigned int crc,unsigned char newbyte);
 extern unsigned int CheckFWCRC(unsigned int startAddr,unsigned int endAddr,unsigned char input[]);
-extern int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, int inTimeOut);
+extern int TransferData_HID(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, int timeout_ms);
+extern int TransferData(uint8_t *OutBuff, int writelen, uint8_t *InBuff, int readlen, int timeout_ms);
 //----------------------------------------------------------------
 extern int SetConnectStyle(char *argv[]);
 extern int InitDevice();
-//extern int ReadData(int readlen,int inTimeOut);
 extern void CloseDevice();
 extern int write_data(int fd, unsigned char *buf, int len);
 extern int read_data(int fd, unsigned char *buf, int len);
 extern int switch_irq(int flag);
 extern void viDriverCtrlReset();
-extern int viWaitAck(uint8_t cmd, int inTimeOut);
+extern int viWaitAck(uint8_t cmd, uint8_t *buf, int timeout_ms);
+extern void i2c_read_data_enable(bool enable);
+extern int hidraw_read(int fd, uint8_t *buf, int len, int timeout_ms,
+		       uint8_t cmd, bool check_validity, bool check_ack);
+extern void debugBuffPrintf(const char *str, uint8_t *buf, int len);
+extern int read_report(char *buf, int len, int t_ms);
+
+extern void init_INT();
+extern bool wait_INT(int timeout_ms);
+extern uint32_t get_driver_ver();
+
+extern int write_and_wait_ack(uint8_t *Wbuff, int wlen, int timeout_ms, int cnt, int delay_ms, int type);
+
+extern int set_engineer(bool enable);
 #endif

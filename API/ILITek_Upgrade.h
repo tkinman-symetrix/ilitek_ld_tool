@@ -5,9 +5,10 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
+
 #ifndef _ILITEK_UPGRADE_H_
 #define _ILITEK_UPGRADE_H_
 #include <stdbool.h>
@@ -33,7 +34,8 @@
 #define CRC_GET_FROM_FLASH                  0
 #define NEED_UPGRADE_FW                     1
 #define NO_NEED_UPGRADE_FW                  0
-#define LEGO_AP_START_ADDRESS				0x3000
+#define LEGO_AP_START_ADDRESS			0x3000
+
 /* Extern typedef -----------------------------------------------------------*/
 struct IC_DATA {
 	unsigned char mode;
@@ -46,11 +48,13 @@ struct BLOCK_DATA {
 	unsigned short ic_crc;
 	unsigned short dae_crc;
 	bool chk_crc;               //false: ic and daemon are different.
+
+	/* Wifi used for calculating progress bar */
+	unsigned int offset;
 };
 
 struct UPGRADE_DATA {
 	unsigned char *filename;
-	unsigned int hexfilesize;
 	unsigned int ap_start_addr;
 	unsigned int df_start_addr;
 	unsigned int exaddr;
@@ -60,6 +64,11 @@ struct UPGRADE_DATA {
 	unsigned int df_check;
 	unsigned int total_check;
 	unsigned char hex_fw_ver[HEX_FWVERSION_SIZE];
+
+	bool args_fw_ver_check;
+	unsigned char args_fw_ver[HEX_FWVERSION_SIZE];
+	int args_len;
+
 	unsigned char hex_ic_type[HEX_KERNEL_VERSION_SIZE];
 	bool hex_info_flag;
 	bool df_tag_exist;
@@ -67,19 +76,28 @@ struct UPGRADE_DATA {
 	unsigned int blk_num;
 	struct BLOCK_DATA *blk;
 	struct IC_DATA *ic;
+
+	/* Wifi used for calculating progress bar */
+	unsigned int progress_curr;
+	unsigned int progress_max;
+	uint8_t progress;
+	bool force_update;
 };
 extern struct UPGRADE_DATA upg;
+
 /* Extern macro -------------------------------------------------------------*/
 /* Extern variables ---------------------------------------------------------*/
 /* Extern function prototypes -----------------------------------------------*/
 /* Extern functions ---------------------------------------------------------*/
 
-int viCheckFWNeedUpgrade(char *cFWVersion);
-int viRunFirmwareUpgrade(unsigned char *filename, char *cFWVersion);
+int viCheckFWNeedUpgrade(unsigned char *cFWVersion);
+int viRunFiremwareUpgrade(char *filename);
+
 int FiremwareUpgrade(unsigned char *filename);
 int UpgradeFirmware_Pro1_8(unsigned char *filename);
 int UpgradeFirmware_Pro1_7(unsigned char *filename);
 int UpgradeFirmware_Pro1_6(unsigned char *filename);
 int hex_file_convert(unsigned char *pbuf, unsigned char *buffer, unsigned int hexfilesize);
+void hex_mapping_convert(unsigned int addr, unsigned char *buffer);
 #endif
 

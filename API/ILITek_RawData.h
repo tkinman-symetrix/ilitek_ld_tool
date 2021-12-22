@@ -5,13 +5,15 @@
  * Copyright (c) 2021 Luca Hsu <luca_hsu@ilitek.com>
  * Copyright (c) 2021 Joe Hung <joe_hung@ilitek.com>
  *
- * The code could be used by anyone for any purpose, 
+ * The code could be used by anyone for any purpose,
  * and could perform firmware update for ILITEK's touch IC.
  */
 #ifndef _ILITEK_RAWDATA_H_
 #define _ILITEK_RAWDATA_H_
 
 /* Includes of headers ------------------------------------------------------*/
+#include "../ILITek_Device.h"
+
 /* Extern define ------------------------------------------------------------*/
 #define TEST_MODE_V3_MC_RAW                 0x1
 #define TEST_MODE_V3_MC_BG                  0x2
@@ -19,6 +21,7 @@
 #define TEST_MODE_V3_SC_RAW                 0x4
 #define TEST_MODE_V3_SC_BG                  0x5
 #define TEST_MODE_V3_SC_SINGNAL             0x6
+#define TEST_MODE_V3_ALL_NODE               0xB
 #define TEST_MODE_V3_KEY_RAW                0x12
 #define TEST_MODE_V3_KEY_BG                 0x13
 #define TEST_MODE_V3_KEY_SINGNEL            0x14
@@ -67,6 +70,14 @@
 #define TEST_MODE_V6_KEY_SC_DAC_P           0x2D
 #define TEST_MODE_V6_KEY_SC_DAC_N           0x2E
 #define RAW_DATA_TRANSGER_V6_LENGTH         1024         //ILI2130/2131/2132 has 1024 byte length limit
+
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <stdio.h>
+#define clrscr()        printf("\e[1;1H\e[2J")
+#endif
+
 /* Extern typedef -----------------------------------------------------------*/
 /* Extern macro -------------------------------------------------------------*/
 /* Extern variables ---------------------------------------------------------*/
@@ -78,17 +89,18 @@ int viRunCDCData(int inFrames);
 int viRunCDCType_3X(const char *type, int inFrames);
 int viRunCDCType_6X(const char *type, int inFrames);
 int viInitRawData_3Para_3X(unsigned char ucCMDInit, unsigned char ucCMDMode, unsigned char ucCMDCounts);
-int viGetRawData_3X(unsigned char ucCMD, unsigned char unStyle, int inTotalCounts, unsigned char ucDataFormat, unsigned char ucLineLenth);
+int viGetRawData_3X(unsigned char ucCMD, unsigned char unStyle, int d_len, unsigned char ucDataFormat, unsigned int ucLineLenth, uint8_t *buf);
 int viRunBGMinusCDCData(int inFrames);
 int viRunBGMinusCDCData_3X(int inFrames);
 int viInitRawData_6X(unsigned char cmd, int delay_count);
-int viGetRawData_6X(unsigned int d_len);
-extern int viRunCreateBenchMark_6X(int argc, char *argv[]);
+int viGetRawData_6X(unsigned int d_len, uint8_t *buf);
+
 extern int viRunCDCType(char *argv[]);
 extern int viInitRawData_3X(unsigned char ucCMDInit, unsigned char ucCMDMode);
 extern int viGetCDCData_3X(unsigned char type, unsigned int len, unsigned char offset, unsigned char driven, unsigned char row);
 extern int viGetCDCData_6X(unsigned char type, unsigned int len);
 int viCreateCDCReportFile(const char *type);
-int viWriteCDCReport(int count, int report[][300], int max, int min, int report_key[][50]);
+void viWriteCDCReport(int count, int report[][300], int max, int min, int report_key[][50]);
+
 #endif
 
