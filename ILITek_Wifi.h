@@ -99,7 +99,7 @@ struct __attribute__((__packed__)) Wifi_RxPTL {
 
 				/* FWUpgrade */
 				struct __attribute__((__packed__)) {
-					_Bool force_update;
+					bool force_update;
 				};
 			};
 			char fw_filename[4091];
