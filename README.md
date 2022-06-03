@@ -5,7 +5,6 @@
       ```sudo apt-get install libusb-dev```
 2. Run ```make```
 
-
 ## How To Run
 1. Put the ILITEK firmware update tool (called "ilitek_ld") into the target system under an executable path
 2. Verify the *.hex firmware file exists on the target system and is accessible
@@ -21,8 +20,6 @@
 - ```<i2c driver file node>``` For I2C interface only, should be /dev/ilitek_ctrl
 - ```<i2c addr>```  For I2C interface only, should be 41
 - ```<Hex path>```  Hex path to upgrade
-
-**NOTE:** Even if I2C is not used, arguments must exist or else the program will have a segmentation fault; fix possibly coming soon...
 
 ### Example
 ``` sudo ./ilitek_ld FWUpgrade USB V3 /dev/ilitek_ctrl 41 firmware.hex ```
